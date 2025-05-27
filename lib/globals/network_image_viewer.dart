@@ -28,32 +28,42 @@ class NetworkImageViewer extends StatelessWidget {
   Widget build(BuildContext context) {
     return url == null
         ? Container(
-          color: ColorPalette().cardColor.darken().withOpacity(.5),
-          child: Center(
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // shimmerLoading(
-                //   color,
-                //   height,
-                //   width: width,
-                // ),
-                SvgPicture.asset(
-                  "assets/icons/logo.svg",
-                  width: width * .7,
-                  color: Colors.red.withOpacity(.5),
-                  fit: BoxFit.contain,
-                ),
-              ],
+            color: ColorPalette().cardColor.darken().withOpacity(.5),
+            child: Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // shimmerLoading(color, height, width: width),
+                  title == "false"
+                      ? SvgPicture.asset(
+                          "assets/icons/logo-ico.svg",
+                          width: width * .5,
+                          color: Colors.red.withOpacity(.5),
+                          fit: BoxFit.contain,
+                        )
+                      : Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Text(
+                              title,
+                              style: const TextStyle(fontSize: 12),
+                              textAlign: TextAlign.center,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                ],
+              ),
             ),
-          ),
-        )
-        : CachedNetworkImage(
-          imageUrl: url!,
-          width: width,
-          height: height,
-          placeholder:
-              (_, url) => Container(
+          )
+        : ClipRRect(
+            borderRadius: BorderRadius.circular(5),
+            child: CachedNetworkImage(
+              imageUrl: url!,
+              width: width,
+              height: height,
+              placeholder: (_, url) => Container(
                 color: color.darken(),
                 child: Center(
                   child: Stack(
@@ -83,31 +93,30 @@ class NetworkImageViewer extends StatelessWidget {
                   ),
                 ),
               ),
-          fit: fit,
-          placeholderFadeInDuration: const Duration(milliseconds: 500),
-          errorWidget:
-              (_, url, error) => Container(
+              fit: fit,
+              placeholderFadeInDuration: const Duration(milliseconds: 500),
+              errorWidget: (_, url, error) => Container(
                 color: ColorPalette().cardColor.darken().withOpacity(.5),
                 padding: const EdgeInsets.symmetric(horizontal: 10),
-                child:
-                    title == "false"
-                        ? SvgPicture.asset(
-                          "assets/icons/logo-ico.svg",
-                          width: width * .7,
-                          color: Colors.red.withOpacity(.5),
-                          fit: BoxFit.contain,
-                        )
-                        : Center(
-                          child: Text(
-                            title,
-                            style: const TextStyle(fontSize: 12),
-                            textAlign: TextAlign.center,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                child: title == "false"
+                    ? SvgPicture.asset(
+                        "assets/icons/logo-ico.svg",
+                        width: width * .7,
+                        color: Colors.red.withOpacity(.5),
+                        fit: BoxFit.contain,
+                      )
+                    : Center(
+                        child: Text(
+                          title,
+                          style: const TextStyle(fontSize: 12),
+                          textAlign: TextAlign.center,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                         ),
+                      ),
               ),
-        );
+            ),
+          );
     // Image.network("");
     // return Image(
     //   fit: fit,

@@ -75,14 +75,14 @@ class MovieListPageState extends State<MovieListPage> {
         text.isEmpty
             ? searchData = List.from(widget.data)
             : searchData = List.from(
-              widget.data
-                  .where(
-                    (element) => element.title.toLowerCase().contains(
-                      text.toLowerCase(),
-                    ),
-                  )
-                  .toList(),
-            );
+                widget.data
+                    .where(
+                      (element) => element.title.toLowerCase().contains(
+                        text.toLowerCase(),
+                      ),
+                    )
+                    .toList(),
+              );
       }
       _displayData.sort((a, b) => a.title.compareTo(b.title));
 
@@ -106,16 +106,15 @@ class MovieListPageState extends State<MovieListPage> {
     return Column(
       children: [
         Expanded(
-          child:
-              widget.showSearchField == true
-                  ? searchData!.isEmpty
-                      ? Center(
+          child: widget.showSearchField == true
+              ? searchData!.isEmpty
+                    ? Center(
                         child: Text(
                           "No Result Found for `$searchText`",
                           style: TextStyle(color: Colors.white.withOpacity(.5)),
                         ),
                       )
-                      : GridView.builder(
+                    : GridView.builder(
                         shrinkWrap: true,
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         gridDelegate:
@@ -303,392 +302,369 @@ class MovieListPageState extends State<MovieListPage> {
                           );
                         },
                       )
-                  : ListView(
-                    controller: widget.controller..addListener(_scrollListener),
-                    children: [
-                      StreamBuilder<List<TopMovieModel>>(
-                        stream: _viewModel.stream,
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData && !snapshot.hasError) {
-                            if (snapshot.data!.isNotEmpty) {
-                              final List<TopMovieModel> result = snapshot.data!;
-                              for (final M3uEntry movdata in widget.data) {
-                                for (final TopMovieModel toprated in result) {
-                                  if (movdata.title == toprated.title) {
-                                    MovieAPI().getMovieVideos(id: toprated.id);
+              : ListView(
+                  controller: widget.controller..addListener(_scrollListener),
+                  children: [
+                    StreamBuilder<List<TopMovieModel>>(
+                      stream: _viewModel.stream,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData && !snapshot.hasError) {
+                          if (snapshot.data!.isNotEmpty) {
+                            final List<TopMovieModel> result = snapshot.data!;
+                            for (final M3uEntry movdata in widget.data) {
+                              for (final TopMovieModel toprated in result) {
+                                if (movdata.title == toprated.title) {
+                                  MovieAPI().getMovieVideos(id: toprated.id);
 
-                                    return SizedBox(
-                                      width: size.width,
-                                      child: Column(
-                                        children: [
-                                          StreamBuilder<List<Video>>(
-                                            stream: _videoViewModel.stream,
-                                            builder: (context, snapshot) {
-                                              if (snapshot.hasData &&
-                                                  !snapshot.hasError) {
-                                                if (snapshot.data!.isNotEmpty) {
-                                                  final List<Video> result =
-                                                      snapshot.data!;
-                                                  final Iterable<Video>
-                                                  trailer = result.where(
-                                                    (element) => element.type
-                                                        .contains("Trailer"),
-                                                  );
-                                                  return Videoplayer(
-                                                    url: trailer.first.key,
-                                                  );
-                                                }
+                                  return SizedBox(
+                                    width: size.width,
+                                    child: Column(
+                                      children: [
+                                        StreamBuilder<List<Video>>(
+                                          stream: _videoViewModel.stream,
+                                          builder: (context, snapshot) {
+                                            if (snapshot.hasData &&
+                                                !snapshot.hasError) {
+                                              if (snapshot.data!.isNotEmpty) {
+                                                final List<Video> result =
+                                                    snapshot.data!;
+                                                final Iterable<Video> trailer =
+                                                    result.where(
+                                                      (element) => element.type
+                                                          .contains("Trailer"),
+                                                    );
+                                                return Videoplayer(
+                                                  url: trailer.first.key,
+                                                );
                                               }
-                                              return const Center(
-                                                child:
-                                                    CircularProgressIndicator(
-                                                      color: Colors.grey,
-                                                    ),
-                                              );
-                                            },
-                                          ),
-                                          MaterialButton(
-                                            elevation: 0,
-                                            color: Colors.transparent,
-                                            padding: const EdgeInsets.all(0),
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                PageTransition(
-                                                  child: MovieDetailsPage(
-                                                    data: movdata,
-                                                    title: toprated.title,
-                                                  ),
-                                                  type:
-                                                      PageTransitionType
-                                                          .leftToRight,
+                                            }
+                                            return const Center(
+                                              child: SizedBox(),
+                                            );
+                                          },
+                                        ),
+                                        MaterialButton(
+                                          elevation: 0,
+                                          color: Colors.transparent,
+                                          padding: const EdgeInsets.all(0),
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              PageTransition(
+                                                child: MovieDetailsPage(
+                                                  data: movdata,
+                                                  title: toprated.title,
                                                 ),
-                                              );
-                                            },
-                                            child: Container(
-                                              width: size.width,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 20,
-                                                    vertical: 15,
+                                                type: PageTransitionType
+                                                    .leftToRight,
+                                              ),
+                                            );
+                                          },
+                                          child: Container(
+                                            width: size.width,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 20,
+                                              vertical: 15,
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  toprated.title,
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 22,
+                                                    height: 1.1,
                                                   ),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    toprated.title,
-                                                    maxLines: 2,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      fontSize: 22,
-                                                      height: 1.1,
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    Text(
+                                                      DateFormat(
+                                                        'MMM dd, yyyy',
+                                                      ).format(toprated.date!),
                                                     ),
-                                                  ),
-                                                  Row(
+                                                    const SizedBox(width: 10),
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 5,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        border: Border.all(
+                                                          color: Colors.white,
+                                                        ),
+                                                        borderRadius:
+                                                            const BorderRadius.all(
+                                                              Radius.circular(
+                                                                5,
+                                                              ),
+                                                            ),
+                                                      ),
+                                                      child: Text(
+                                                        "${toprated.voteAverage}",
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 15),
+                                                    SizedBox(
+                                                      height: 25,
+                                                      width: 30,
+                                                      child: MaterialButton(
+                                                        color: Colors.grey,
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              0,
+                                                            ),
+                                                        onPressed: () {},
+                                                        child: const Text(
+                                                          "HD",
+                                                          style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                } else {
+                                  Center(
+                                    child: Text(
+                                      "No_data_available".tr(),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+                            }
+                          }
+                          return const Center(child: SizedBox());
+                        }
+                        return Center(
+                          child: Text(
+                            "No_data_available".tr(),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const ClampingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: calculateCrossAxisCount(context),
+                        childAspectRatio: .8,
+                        crossAxisSpacing: 10,
+                      ),
+                      itemCount: _displayData.length,
+                      itemBuilder: (context, index) {
+                        final M3uEntry item = _displayData[index];
+
+                        return GestureDetector(
+                          onTap: () async {
+                            String result1 = item.title.replaceAll(
+                              RegExp(r"[0-9]|[(]+[0-9]+[)]|[|]\s+[0-9]+\s[|]"),
+                              '',
+                            );
+                            String result2 = result1.replaceAll(
+                              RegExp(r"[|]+[a-zA-Z]+[|]|[a-zA-Z]+[|]"),
+                              '',
+                            );
+
+                            String result3 = item.title.replaceAll(
+                              RegExp('[^0-9]'),
+                              '',
+                            );
+
+                            print("MOVIEEE TITLE: ${item.title}");
+                            print("MOVIEEE TITLE (result1): $result1");
+                            print("MOVIEEE TITLE (result2): $result2");
+                            print("MOVIEEE TITLE (result3): $result3");
+
+                            Navigator.push(
+                              context,
+                              PageTransition(
+                                child: MovieDetailsPage(
+                                  data: item,
+                                  title: result2,
+                                  year: result3,
+                                ),
+                                type: PageTransitionType.rightToLeft,
+                              ),
+                            );
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                            child: Stack(
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(
+                                    top: 10,
+                                    right: 10,
+                                  ),
+                                  child: LayoutBuilder(
+                                    builder: (context, c) {
+                                      final double w = c.maxWidth;
+                                      final double h = c.maxHeight;
+                                      return ClipRRect(
+                                        borderRadius: BorderRadius.circular(5),
+                                        child: NetworkImageViewer(
+                                          url: item.attributes['tvg-logo'],
+                                          width: w,
+                                          height: h,
+                                          fit: BoxFit.cover,
+                                          color: ColorPalette().highlight,
+                                          title: item.title,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  // LayoutBuilder(
+                                  //   builder: (context, c) {
+                                  //     final double w = c.maxWidth;
+                                  //     return Tooltip(
+                                  //       message: item.title,
+                                  //       child: Column(
+                                  //         crossAxisAlignment:
+                                  //             CrossAxisAlignment.start,
+                                  //         children: [
+                                  //           Container(
+                                  //             decoration: BoxDecoration(
+                                  //               borderRadius:
+                                  //                   BorderRadius.circular(10),
+                                  //             ),
+                                  //             child: NetworkImageViewer(
+                                  //               url: item
+                                  //                   .attributes['tvg-logo'],
+                                  //               width: w,
+                                  //               height: 75,
+                                  //               fit: BoxFit.fitHeight,
+                                  //               color: highlight,
+                                  //             ),
+                                  //           ),
+                                  //           const SizedBox(height: 3),
+                                  //           Tooltip(
+                                  //             message: item.title,
+                                  //             child: Text(
+                                  //               item.title,
+                                  //               style: const TextStyle(
+                                  //                   fontSize: 12),
+                                  //               maxLines: 2,
+                                  //               overflow:
+                                  //                   TextOverflow.ellipsis,
+                                  //             ),
+                                  //           ),
+                                  //         ],
+                                  //       ),
+                                  //     );
+                                  //   },
+                                  // ),
+                                ),
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: SizedBox(
+                                    height: 25,
+                                    width: 25,
+                                    child: FavoriteIconButton(
+                                      onPressedCallback: (bool f) async {
+                                        if (f) {
+                                          showDialog(
+                                            barrierDismissible: false,
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              Future.delayed(
+                                                const Duration(seconds: 3),
+                                                () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              );
+                                              return Dialog(
+                                                alignment: Alignment.topCenter,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 20,
+                                                      ),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
                                                     children: [
                                                       Text(
-                                                        DateFormat(
-                                                          'MMM dd, yyyy',
-                                                        ).format(
-                                                          toprated.date!,
+                                                        "Added_to_Favorites"
+                                                            .tr(),
+                                                        style: const TextStyle(
+                                                          fontSize: 16,
                                                         ),
                                                       ),
-                                                      const SizedBox(width: 10),
-                                                      Container(
+                                                      IconButton(
                                                         padding:
-                                                            const EdgeInsets.symmetric(
-                                                              horizontal: 5,
+                                                            const EdgeInsets.all(
+                                                              0,
                                                             ),
-                                                        decoration: BoxDecoration(
-                                                          border: Border.all(
-                                                            color: Colors.white,
-                                                          ),
-                                                          borderRadius:
-                                                              const BorderRadius.all(
-                                                                Radius.circular(
-                                                                  5,
-                                                                ),
-                                                              ),
-                                                        ),
-                                                        child: Text(
-                                                          "${toprated.voteAverage}",
-                                                        ),
-                                                      ),
-                                                      const SizedBox(width: 15),
-                                                      SizedBox(
-                                                        height: 25,
-                                                        width: 30,
-                                                        child: MaterialButton(
-                                                          color: Colors.grey,
-                                                          padding:
-                                                              const EdgeInsets.all(
-                                                                0,
-                                                              ),
-                                                          onPressed: () {},
-                                                          child: const Text(
-                                                            "HD",
-                                                            style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                            ),
-                                                          ),
+                                                        onPressed: () {
+                                                          Navigator.of(
+                                                            context,
+                                                          ).pop();
+                                                        },
+                                                        icon: const Icon(
+                                                          Icons.close_rounded,
                                                         ),
                                                       ),
                                                     ],
                                                   ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  } else {
-                                    Center(
-                                      child: Text(
-                                        "No_data_available".tr(),
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                }
-                              }
-                            }
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.grey,
-                              ),
-                            );
-                          }
-                          return Center(
-                            child: Text(
-                              "No_data_available".tr(),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const ClampingScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: calculateCrossAxisCount(context),
-                          childAspectRatio: .8,
-                          crossAxisSpacing: 10,
-                        ),
-                        itemCount: _displayData.length,
-                        itemBuilder: (context, index) {
-                          final M3uEntry item = _displayData[index];
-
-                          return GestureDetector(
-                            onTap: () async {
-                              String result1 = item.title.replaceAll(
-                                RegExp(
-                                  r"[0-9]|[(]+[0-9]+[)]|[|]\s+[0-9]+\s[|]",
-                                ),
-                                '',
-                              );
-                              String result2 = result1.replaceAll(
-                                RegExp(r"[|]+[a-zA-Z]+[|]|[a-zA-Z]+[|]"),
-                                '',
-                              );
-
-                              String result3 = item.title.replaceAll(
-                                RegExp('[^0-9]'),
-                                '',
-                              );
-
-                              print("MOVIEEE TITLE: ${item.title}");
-                              print("MOVIEEE TITLE (result1): $result1");
-                              print("MOVIEEE TITLE (result2): $result2");
-                              print("MOVIEEE TITLE (result3): $result3");
-
-                              Navigator.push(
-                                context,
-                                PageTransition(
-                                  child: MovieDetailsPage(
-                                    data: item,
-                                    title: result2,
-                                    year: result3,
-                                  ),
-                                  type: PageTransitionType.rightToLeft,
-                                ),
-                              );
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 1.5,
-                              ),
-                              child: Stack(
-                                children: [
-                                  Container(
-                                    margin: const EdgeInsets.only(
-                                      top: 10,
-                                      right: 10,
-                                    ),
-                                    child: LayoutBuilder(
-                                      builder: (context, c) {
-                                        final double w = c.maxWidth;
-                                        final double h = c.maxHeight;
-                                        return ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            5,
-                                          ),
-                                          child: NetworkImageViewer(
-                                            url: item.attributes['tvg-logo'],
-                                            width: w,
-                                            height: h,
-                                            fit: BoxFit.cover,
-                                            color: ColorPalette().highlight,
-                                            title: item.title,
-                                          ),
-                                        );
+                                                ),
+                                              );
+                                            },
+                                          );
+                                          await item.addToFavorites(refId!);
+                                          widget.onUpdateCallback(item);
+                                        } else {
+                                          await item.removeFromFavorites(
+                                            refId!,
+                                          );
+                                          widget.onUpdateCallback(item);
+                                        }
+                                        await fetchFav();
                                       },
-                                    ),
-                                    // LayoutBuilder(
-                                    //   builder: (context, c) {
-                                    //     final double w = c.maxWidth;
-                                    //     return Tooltip(
-                                    //       message: item.title,
-                                    //       child: Column(
-                                    //         crossAxisAlignment:
-                                    //             CrossAxisAlignment.start,
-                                    //         children: [
-                                    //           Container(
-                                    //             decoration: BoxDecoration(
-                                    //               borderRadius:
-                                    //                   BorderRadius.circular(10),
-                                    //             ),
-                                    //             child: NetworkImageViewer(
-                                    //               url: item
-                                    //                   .attributes['tvg-logo'],
-                                    //               width: w,
-                                    //               height: 75,
-                                    //               fit: BoxFit.fitHeight,
-                                    //               color: highlight,
-                                    //             ),
-                                    //           ),
-                                    //           const SizedBox(height: 3),
-                                    //           Tooltip(
-                                    //             message: item.title,
-                                    //             child: Text(
-                                    //               item.title,
-                                    //               style: const TextStyle(
-                                    //                   fontSize: 12),
-                                    //               maxLines: 2,
-                                    //               overflow:
-                                    //                   TextOverflow.ellipsis,
-                                    //             ),
-                                    //           ),
-                                    //         ],
-                                    //       ),
-                                    //     );
-                                    //   },
-                                    // ),
-                                  ),
-                                  Positioned(
-                                    top: 0,
-                                    right: 0,
-                                    child: SizedBox(
-                                      height: 25,
-                                      width: 25,
-                                      child: FavoriteIconButton(
-                                        onPressedCallback: (bool f) async {
-                                          if (f) {
-                                            showDialog(
-                                              barrierDismissible: false,
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                Future.delayed(
-                                                  const Duration(seconds: 3),
-                                                  () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                );
-                                                return Dialog(
-                                                  alignment:
-                                                      Alignment.topCenter,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          10,
-                                                        ),
-                                                  ),
-                                                  child: Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 20,
-                                                        ),
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      children: [
-                                                        Text(
-                                                          "Added_to_Favorites"
-                                                              .tr(),
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 16,
-                                                              ),
-                                                        ),
-                                                        IconButton(
-                                                          padding:
-                                                              const EdgeInsets.all(
-                                                                0,
-                                                              ),
-                                                          onPressed: () {
-                                                            Navigator.of(
-                                                              context,
-                                                            ).pop();
-                                                          },
-                                                          icon: const Icon(
-                                                            Icons.close_rounded,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                            );
-                                            await item.addToFavorites(refId!);
-                                            widget.onUpdateCallback(item);
-                                          } else {
-                                            await item.removeFromFavorites(
-                                              refId!,
-                                            );
-                                            widget.onUpdateCallback(item);
-                                          }
-                                          await fetchFav();
-                                        },
-                                        initValue: item.existsInFavorites(
-                                          "movie",
-                                        ),
-                                        iconSize: 20,
+                                      initValue: item.existsInFavorites(
+                                        "movie",
                                       ),
+                                      iconSize: 20,
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
         ),
       ],
     );
@@ -696,8 +672,8 @@ class MovieListPageState extends State<MovieListPage> {
 
   int calculateCrossAxisCount(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    int crossAxisCount =
-        (screenWidth / 150).floor(); // Calculate based on item width
+    int crossAxisCount = (screenWidth / 150)
+        .floor(); // Calculate based on item width
     return crossAxisCount < 3 ? 3 : crossAxisCount;
   }
 

@@ -79,8 +79,9 @@ class _FavoritePageState extends State<FavoritePage> {
               final List<ClassifiedData> series = result.series;
               final List<ClassifiedData> live = result.live;
               final List<ClassifiedData> movies = result.movies;
-              final List<M3uEntry> liveData =
-                  live.expand((element) => element.data).toList();
+              final List<M3uEntry> liveData = live
+                  .expand((element) => element.data)
+                  .toList();
 
               if (live.isEmpty && series.isEmpty && result.movies.isEmpty) {
                 return const Center(child: Text("No data added to favorites"));
@@ -128,7 +129,10 @@ class _FavoritePageState extends State<FavoritePage> {
                                           e.addToHistory(refId!);
                                           await VideoLoader().loadVideo(
                                             context,
-                                            e,
+                                            link: e.link,
+                                            title: e.title,
+                                            type: "",
+                                            image: e.attributes['tvg-logo'],
                                           );
                                           // await showModalBottomSheet(
                                           //     context: context,
@@ -164,14 +168,16 @@ class _FavoritePageState extends State<FavoritePage> {
                                       ),
                                     ),
                                     const SizedBox(height: 5),
-                                    Text(
-                                      e.title,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                    e.attributes['tvg-logo'] == null
+                                        ? const SizedBox()
+                                        : Text(
+                                            e.title,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                   ],
                                 ),
                               ),
@@ -378,14 +384,13 @@ class _FavoritePageState extends State<FavoritePage> {
                                                     data: d,
                                                     title: result2,
                                                   ),
-                                                  type:
-                                                      PageTransitionType
-                                                          .rightToLeft,
+                                                  type: PageTransitionType
+                                                      .rightToLeft,
                                                 ),
                                               );
                                             },
                                             child: NetworkImageViewer(
-                                              url: d.attributes['tvg-logo']!,
+                                              url: d.attributes['tvg-logo'],
                                               title: d.title,
                                               width: 150,
                                               height: 90,
@@ -395,14 +400,16 @@ class _FavoritePageState extends State<FavoritePage> {
                                           ),
                                         ),
                                         const SizedBox(height: 5),
-                                        Text(
-                                          d.title,
-                                          maxLines: 2,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
+                                        d.attributes['tvg-logo'] == null
+                                            ? const SizedBox()
+                                            : Text(
+                                                d.title,
+                                                maxLines: 2,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                       ],
                                     ),
                                   ),
@@ -488,8 +495,8 @@ class _FavoritePageState extends State<FavoritePage> {
                                 ],
                               );
                             },
-                            separatorBuilder:
-                                (_, __) => const SizedBox(width: 10),
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(width: 10),
                           );
                         },
                         separatorBuilder: (_, i) => const SizedBox(width: 10),
@@ -574,17 +581,15 @@ class _FavoritePageState extends State<FavoritePage> {
                                                     data: d,
                                                     title: result2,
                                                   ),
-                                                  type:
-                                                      PageTransitionType
-                                                          .rightToLeft,
+                                                  type: PageTransitionType
+                                                      .rightToLeft,
                                                 ),
                                               );
                                             },
                                             child: NetworkImageViewer(
-                                              url:
-                                                  d
-                                                      .data[0]
-                                                      .attributes['tvg-logo']!,
+                                              url: d
+                                                  .data[0]
+                                                  .attributes['tvg-logo'],
                                               title: d.data[0].title,
                                               width: 150,
                                               height: 90,
@@ -594,14 +599,16 @@ class _FavoritePageState extends State<FavoritePage> {
                                           ),
                                         ),
                                         const SizedBox(height: 5),
-                                        Text(
-                                          d.name,
-                                          maxLines: 2,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
+                                        d.data[0].attributes['tvg-logo'] == null
+                                            ? const SizedBox()
+                                            : Text(
+                                                d.name,
+                                                maxLines: 2,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                       ],
                                     ),
                                   ),
@@ -689,8 +696,8 @@ class _FavoritePageState extends State<FavoritePage> {
                                 ],
                               );
                             },
-                            separatorBuilder:
-                                (_, __) => const SizedBox(width: 10),
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(width: 10),
                           );
                         },
                         separatorBuilder: (_, i) => const SizedBox(width: 10),

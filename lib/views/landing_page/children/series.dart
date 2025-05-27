@@ -17,6 +17,9 @@ import '../../../globals/palette.dart';
 import '../../../globals/ui_additional.dart';
 import '../../../m3u/classified_data.dart';
 import '../../../m3u/zm3u_handler.dart';
+import '../../../models/xtreams_models/category.dart';
+import '../../../services/xtream_api.dart';
+import '../../../viewmodel/xtream_category_vm.dart';
 import 'series_children/fav_series.dart';
 import 'series_children/series_category.dart';
 import 'series_children/series_history.dart';
@@ -38,6 +41,7 @@ class _SeriesPageState extends State<SeriesPage> {
   late List<ClassifiedData> _favdata = [];
   late List<ClassifiedData> _hisdata = [];
   final LoadedM3uData _vm = LoadedM3uData.instance;
+  List<CategoryModel> xtreamCategory = [];
   List<ClassifiedData>? displayData;
   List<ClassifiedData> seriesData = [];
   late List<ClassifiedData> favData = [];
@@ -184,598 +188,597 @@ class _SeriesPageState extends State<SeriesPage> {
         ),
         body: Stack(
           children: [
-            displayData == null
+            displayData == null && seriesXtreamData.isEmpty
                 ? SeizhTvLoader(
-                  label: Text(
-                    "Retrieving_data".tr(),
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                )
+                    label: Text(
+                      "Retrieving_data".tr(),
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  )
                 : Column(
-                  children: [
-                    Container(
-                      height: 50,
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: ListView(
-                        shrinkWrap: true,
-                        scrollDirection: Axis.horizontal,
-                        children: [
-                          ind == 0
-                              ? Container(
-                                width: 270,
+                    children: [
+                      Container(
+                        height: 50,
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: ListView(
+                          shrinkWrap: true,
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            ind == 0
+                                ? Container(
+                                    width: 270,
+                                    height: 50,
+                                    padding: const EdgeInsets.all(10),
+                                    alignment: Alignment.centerLeft,
+                                    decoration: BoxDecoration(
+                                      color: ind == 0
+                                          ? ColorPalette().topColor
+                                          : ColorPalette().highlight,
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: ind == 0
+                                            ? ColorPalette().topColor
+                                            : Colors.grey,
+                                      ),
+                                    ),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          prevIndex = ind;
+                                          ind = 0;
+                                          showSearchField = false;
+                                          print("CURRENT INDEX $ind");
+                                          print("PREV INDEX $prevIndex");
+                                        });
+                                      },
+                                      child: ind == 0 && prevIndex != 0
+                                          ? DropdownButton(
+                                              elevation: 0,
+                                              isExpanded: true,
+                                              padding: const EdgeInsets.all(0),
+                                              underline: Container(),
+                                              onTap: () {
+                                                setState(() {
+                                                  selected = true;
+                                                  ind = 0;
+                                                });
+                                              },
+                                              items: categoryName!.map((value) {
+                                                return DropdownMenuItem(
+                                                  value: value,
+                                                  child: Text(
+                                                    value,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                );
+                                              }).toList(),
+                                              value: dropdownvalue == ""
+                                                  ? categoryName == []
+                                                        ? ""
+                                                        : categoryName![3]
+                                                  : dropdownvalue,
+                                              style: const TextStyle(
+                                                fontFamily: "Poppins",
+                                              ),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  dropdownvalue = value!;
+                                                  String result1 = dropdownvalue
+                                                      .replaceAll(
+                                                        RegExp(
+                                                          r"[(]+[0-9]+[)]",
+                                                        ),
+                                                        '',
+                                                      );
+
+                                                  data =
+                                                      displayData!
+                                                          .where(
+                                                            (element) => element
+                                                                .name
+                                                                .contains(
+                                                                  result1
+                                                                      .trimRight(),
+                                                                ),
+                                                          )
+                                                          .expand(
+                                                            (element) => element
+                                                                .data
+                                                                .classify(),
+                                                          )
+                                                          .toList()
+                                                        ..sort(
+                                                          (a, b) =>
+                                                              a.name.compareTo(
+                                                                b.name,
+                                                              ),
+                                                        );
+                                                  categorydata = data;
+                                                  showSearchField = false;
+                                                  categorysearch = false;
+                                                });
+                                              },
+                                            )
+                                          : Text(
+                                              dropdownvalue,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontFamily: "Poppins",
+                                              ),
+                                            ),
+                                    ),
+                                  )
+                                : GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        prevIndex = ind;
+                                        ind = 0;
+                                        showSearchField = false;
+                                        print("CURRENT INDEX $ind");
+                                        print("PREV INDEX $prevIndex");
+                                      });
+                                    },
+                                    child: Container(
+                                      // width: 180,
+                                      height: 50,
+                                      padding: const EdgeInsets.all(10),
+                                      alignment: Alignment.centerLeft,
+                                      decoration: BoxDecoration(
+                                        color: ind == 0
+                                            ? ColorPalette().topColor
+                                            : ColorPalette().highlight,
+                                        borderRadius: BorderRadius.circular(5),
+                                        border: Border.all(
+                                          color: ind == 0
+                                              ? ColorPalette().topColor
+                                              : Colors.grey,
+                                        ),
+                                      ),
+                                      child: ind == 0 && prevIndex != 0
+                                          ? DropdownButton(
+                                              elevation: 0,
+                                              isExpanded: true,
+                                              padding: const EdgeInsets.all(0),
+                                              underline: Container(),
+                                              onTap: () {
+                                                setState(() {
+                                                  selected = true;
+                                                  ind = 0;
+                                                });
+                                              },
+                                              items: categoryName!.map((value) {
+                                                return DropdownMenuItem(
+                                                  value: value,
+                                                  child: Text(
+                                                    value,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                );
+                                              }).toList(),
+                                              value: dropdownvalue == ""
+                                                  ? categoryName == []
+                                                        ? ""
+                                                        : categoryName![3]
+                                                  : dropdownvalue,
+                                              style: const TextStyle(
+                                                fontFamily: "Poppins",
+                                              ),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  dropdownvalue = value!;
+                                                  String result1 = dropdownvalue
+                                                      .replaceAll(
+                                                        RegExp(
+                                                          r"[(]+[0-9]+[)]",
+                                                        ),
+                                                        '',
+                                                      );
+
+                                                  data =
+                                                      displayData!
+                                                          .where(
+                                                            (element) => element
+                                                                .name
+                                                                .contains(
+                                                                  result1
+                                                                      .trimRight(),
+                                                                ),
+                                                          )
+                                                          .expand(
+                                                            (element) => element
+                                                                .data
+                                                                .classify(),
+                                                          )
+                                                          .toList()
+                                                        ..sort(
+                                                          (a, b) =>
+                                                              a.name.compareTo(
+                                                                b.name,
+                                                              ),
+                                                        );
+                                                  categorydata = data;
+                                                  showSearchField = false;
+                                                  categorysearch = false;
+                                                });
+                                              },
+                                            )
+                                          : Text(
+                                              dropdownvalue,
+                                              style: const TextStyle(
+                                                fontFamily: "Poppins",
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                            const SizedBox(width: 10),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  prevIndex = ind;
+                                  ind = 1;
+                                  showSearchField = false;
+                                });
+                              },
+                              child: Container(
                                 height: 50,
                                 padding: const EdgeInsets.all(10),
                                 alignment: Alignment.centerLeft,
                                 decoration: BoxDecoration(
-                                  color:
-                                      ind == 0
-                                          ? ColorPalette().topColor
-                                          : ColorPalette().highlight,
+                                  color: ind == 1
+                                      ? ColorPalette().topColor
+                                      : ColorPalette().highlight,
                                   borderRadius: BorderRadius.circular(5),
                                   border: Border.all(
-                                    color:
-                                        ind == 0
-                                            ? ColorPalette().topColor
-                                            : Colors.grey,
+                                    color: ind == 1
+                                        ? ColorPalette().topColor
+                                        : Colors.grey,
                                   ),
                                 ),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      prevIndex = ind;
-                                      ind = 0;
-                                      showSearchField = false;
-                                      print("CURRENT INDEX $ind");
-                                      print("PREV INDEX $prevIndex");
-                                    });
-                                  },
-                                  child:
-                                      ind == 0 && prevIndex != 0
-                                          ? DropdownButton(
-                                            elevation: 0,
-                                            isExpanded: true,
-                                            padding: const EdgeInsets.all(0),
-                                            underline: Container(),
-                                            onTap: () {
-                                              setState(() {
-                                                selected = true;
-                                                ind = 0;
-                                              });
-                                            },
-                                            items:
-                                                categoryName!.map((value) {
-                                                  return DropdownMenuItem(
-                                                    value: value,
-                                                    child: Text(
-                                                      value,
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  );
-                                                }).toList(),
-                                            value:
-                                                dropdownvalue == ""
-                                                    ? categoryName == []
-                                                        ? ""
-                                                        : categoryName![3]
-                                                    : dropdownvalue,
-                                            style: const TextStyle(
-                                              fontFamily: "Poppins",
-                                            ),
-                                            onChanged: (value) {
-                                              setState(() {
-                                                dropdownvalue = value!;
-                                                String result1 = dropdownvalue
-                                                    .replaceAll(
-                                                      RegExp(r"[(]+[0-9]+[)]"),
-                                                      '',
-                                                    );
-
-                                                data =
-                                                    displayData!
-                                                        .where(
-                                                          (element) => element
-                                                              .name
-                                                              .contains(
-                                                                result1
-                                                                    .trimRight(),
-                                                              ),
-                                                        )
-                                                        .expand(
-                                                          (element) =>
-                                                              element.data
-                                                                  .classify(),
-                                                        )
-                                                        .toList()
-                                                      ..sort(
-                                                        (a, b) => a.name
-                                                            .compareTo(b.name),
-                                                      );
-                                                categorydata = data;
-                                                showSearchField = false;
-                                                categorysearch = false;
-                                              });
-                                            },
-                                          )
-                                          : Text(
-                                            dropdownvalue,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontFamily: "Poppins",
-                                            ),
-                                          ),
+                                child: Text(
+                                  "${"favorites".tr().toUpperCase()} (${favData.length})",
+                                  style: const TextStyle(fontFamily: "Poppins"),
                                 ),
-                              )
-                              : GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    prevIndex = ind;
-                                    ind = 0;
-                                    showSearchField = false;
-                                    print("CURRENT INDEX $ind");
-                                    print("PREV INDEX $prevIndex");
-                                  });
-                                },
-                                child: Container(
-                                  // width: 180,
-                                  height: 50,
-                                  padding: const EdgeInsets.all(10),
-                                  alignment: Alignment.centerLeft,
-                                  decoration: BoxDecoration(
-                                    color:
-                                        ind == 0
-                                            ? ColorPalette().topColor
-                                            : ColorPalette().highlight,
-                                    borderRadius: BorderRadius.circular(5),
-                                    border: Border.all(
-                                      color:
-                                          ind == 0
-                                              ? ColorPalette().topColor
-                                              : Colors.grey,
-                                    ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  prevIndex = ind;
+                                  ind = 2;
+                                  showSearchField = false;
+                                });
+                              },
+                              child: Container(
+                                height: 50,
+                                padding: const EdgeInsets.all(10),
+                                alignment: Alignment.centerLeft,
+                                decoration: BoxDecoration(
+                                  color: ind == 2
+                                      ? ColorPalette().topColor
+                                      : ColorPalette().highlight,
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(
+                                    color: ind == 2
+                                        ? ColorPalette().topColor
+                                        : Colors.grey,
                                   ),
-                                  child:
-                                      ind == 0 && prevIndex != 0
-                                          ? DropdownButton(
-                                            elevation: 0,
-                                            isExpanded: true,
-                                            padding: const EdgeInsets.all(0),
-                                            underline: Container(),
-                                            onTap: () {
-                                              setState(() {
-                                                selected = true;
-                                                ind = 0;
-                                              });
-                                            },
-                                            items:
-                                                categoryName!.map((value) {
-                                                  return DropdownMenuItem(
-                                                    value: value,
-                                                    child: Text(
-                                                      value,
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  );
-                                                }).toList(),
-                                            value:
-                                                dropdownvalue == ""
-                                                    ? categoryName == []
-                                                        ? ""
-                                                        : categoryName![3]
-                                                    : dropdownvalue,
-                                            style: const TextStyle(
-                                              fontFamily: "Poppins",
-                                            ),
-                                            onChanged: (value) {
-                                              setState(() {
-                                                dropdownvalue = value!;
-                                                String result1 = dropdownvalue
-                                                    .replaceAll(
-                                                      RegExp(r"[(]+[0-9]+[)]"),
-                                                      '',
-                                                    );
-
-                                                data =
-                                                    displayData!
-                                                        .where(
-                                                          (element) => element
-                                                              .name
-                                                              .contains(
-                                                                result1
-                                                                    .trimRight(),
-                                                              ),
-                                                        )
-                                                        .expand(
-                                                          (element) =>
-                                                              element.data
-                                                                  .classify(),
-                                                        )
-                                                        .toList()
-                                                      ..sort(
-                                                        (a, b) => a.name
-                                                            .compareTo(b.name),
-                                                      );
-                                                categorydata = data;
-                                                showSearchField = false;
-                                                categorysearch = false;
-                                              });
-                                            },
-                                          )
-                                          : Text(
-                                            dropdownvalue,
-                                            style: const TextStyle(
-                                              fontFamily: "Poppins",
-                                            ),
-                                          ),
                                 ),
-                              ),
-                          const SizedBox(width: 10),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                prevIndex = ind;
-                                ind = 1;
-                                showSearchField = false;
-                              });
-                            },
-                            child: Container(
-                              height: 50,
-                              padding: const EdgeInsets.all(10),
-                              alignment: Alignment.centerLeft,
-                              decoration: BoxDecoration(
-                                color:
-                                    ind == 1
-                                        ? ColorPalette().topColor
-                                        : ColorPalette().highlight,
-                                borderRadius: BorderRadius.circular(5),
-                                border: Border.all(
-                                  color:
-                                      ind == 1
-                                          ? ColorPalette().topColor
-                                          : Colors.grey,
+                                child: Text(
+                                  "${"Series History".toUpperCase()} (${hisData.length})",
+                                  style: const TextStyle(fontFamily: "Poppins"),
                                 ),
-                              ),
-                              child: Text(
-                                "${"favorites".tr().toUpperCase()} (${favData.length})",
-                                style: const TextStyle(fontFamily: "Poppins"),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                prevIndex = ind;
-                                ind = 2;
-                                showSearchField = false;
-                              });
-                            },
-                            child: Container(
-                              height: 50,
-                              padding: const EdgeInsets.all(10),
-                              alignment: Alignment.centerLeft,
-                              decoration: BoxDecoration(
-                                color:
-                                    ind == 2
-                                        ? ColorPalette().topColor
-                                        : ColorPalette().highlight,
-                                borderRadius: BorderRadius.circular(5),
-                                border: Border.all(
-                                  color:
-                                      ind == 2
-                                          ? ColorPalette().topColor
-                                          : Colors.grey,
-                                ),
-                              ),
-                              child: Text(
-                                "${"Series History".toUpperCase()} (${hisData.length})",
-                                style: const TextStyle(fontFamily: "Poppins"),
-                              ),
-                            ),
-                          ),
-                          // GestureDetector(
-                          //   onTap: () {
-                          //     setState(() {
-                          //       prevIndex = ind;
-                          //       ind = 0;
-                          //       showSearchField = false;
-                          //       print("CURRENT INDEX $ind");
-                          //       print("PREV INDEX $prevIndex");
-                          //     });
-                          //   },
-                          //   child: ind == 0 && prevIndex != 0
-                          //       ? ChoiceChip(
-                          //           showCheckmark: false,
-                          //           padding: const EdgeInsets.symmetric(
-                          //               horizontal: 10),
-                          //           label: Container(
-                          //             width: 170,
-                          //             height: 45,
-                          //             decoration: BoxDecoration(
-                          //               borderRadius:
-                          //                   BorderRadius.circular(30),
-                          //             ),
-                          //             child: DropdownButton(
-                          //               elevation: 0,
-                          //               isExpanded: true,
-                          //               padding: const EdgeInsets.all(0),
-                          //               underline: Container(),
-                          //               onTap: () {
-                          //                 setState(() {
-                          //                   selected = true;
-                          //                   ind = 0;
-                          //                 });
-                          //               },
-                          //               items: categoryName!.map((value) {
-                          //                 return DropdownMenuItem(
-                          //                     value: value,
-                          //                     child: Text(value));
-                          //               }).toList(),
-                          //               value: dropdownvalue == ""
-                          //                   ? categoryName == []
-                          //                       ? ""
-                          //                       : categoryName![3]
-                          //                   : dropdownvalue,
-                          //               style: const TextStyle(
-                          //                   fontFamily: "Poppins"),
-                          //               onChanged: (value) {
-                          //                 setState(
-                          //                   () {
-                          //                     dropdownvalue = value!;
-                          //                     String result1 =
-                          //                         dropdownvalue.replaceAll(
-                          //                             RegExp(
-                          //                                 r"[(]+[0-9]+[)]"),
-                          //                             '');
+                            // GestureDetector(
+                            //   onTap: () {
+                            //     setState(() {
+                            //       prevIndex = ind;
+                            //       ind = 0;
+                            //       showSearchField = false;
+                            //       print("CURRENT INDEX $ind");
+                            //       print("PREV INDEX $prevIndex");
+                            //     });
+                            //   },
+                            //   child: ind == 0 && prevIndex != 0
+                            //       ? ChoiceChip(
+                            //           showCheckmark: false,
+                            //           padding: const EdgeInsets.symmetric(
+                            //               horizontal: 10),
+                            //           label: Container(
+                            //             width: 170,
+                            //             height: 45,
+                            //             decoration: BoxDecoration(
+                            //               borderRadius:
+                            //                   BorderRadius.circular(30),
+                            //             ),
+                            //             child: DropdownButton(
+                            //               elevation: 0,
+                            //               isExpanded: true,
+                            //               padding: const EdgeInsets.all(0),
+                            //               underline: Container(),
+                            //               onTap: () {
+                            //                 setState(() {
+                            //                   selected = true;
+                            //                   ind = 0;
+                            //                 });
+                            //               },
+                            //               items: categoryName!.map((value) {
+                            //                 return DropdownMenuItem(
+                            //                     value: value,
+                            //                     child: Text(value));
+                            //               }).toList(),
+                            //               value: dropdownvalue == ""
+                            //                   ? categoryName == []
+                            //                       ? ""
+                            //                       : categoryName![3]
+                            //                   : dropdownvalue,
+                            //               style: const TextStyle(
+                            //                   fontFamily: "Poppins"),
+                            //               onChanged: (value) {
+                            //                 setState(
+                            //                   () {
+                            //                     dropdownvalue = value!;
+                            //                     String result1 =
+                            //                         dropdownvalue.replaceAll(
+                            //                             RegExp(
+                            //                                 r"[(]+[0-9]+[)]"),
+                            //                             '');
 
-                          // data = displayData!
-                          //     .where((element) => element
-                          //         .name
-                          //         .contains(result1
-                          //             .trimRight()))
-                          //     .expand((element) =>
-                          //         element.data.classify())
-                          //     .toList()
-                          //   ..sort((a, b) =>
-                          //       a.name.compareTo(b.name));
-                          // categorydata = data;
-                          //                     showSearchField = false;
-                          //                     categorysearch = false;
-                          //                     print(
-                          //                         "DATA IN CATEGORY: ${data.length}");
-                          //                   },
-                          //                 );
-                          //               },
-                          //             ),
-                          //           ),
-                          //           selected: ind == 0 ? true : false,
-                          //           selectedColor: ColorPalette().topColor,
-                          //           disabledColor: ColorPalette().highlight,
-                          //         )
-                          //       : ChoiceChip(
-                          //           showCheckmark: false,
-                          //           padding: const EdgeInsets.symmetric(
-                          //               horizontal: 10),
-                          //           label: SizedBox(
-                          //             height: 45,
-                          //             child: Center(
-                          //               child: Text(
-                          //                 dropdownvalue,
-                          //                 style: const TextStyle(
-                          //                     fontFamily: "Poppins"),
-                          //               ),
-                          //             ),
-                          //           ),
-                          //           selected: ind == 0 ? true : false,
-                          //           selectedColor: ColorPalette().topColor,
-                          //           disabledColor: ColorPalette().highlight,
-                          //         ),
-                          // ),
-                          // const SizedBox(width: 10),
-                          // GestureDetector(
-                          //   onTap: () {
-                          //     setState(() {
-                          //       prevIndex = ind;
-                          //       ind = 1;
-                          //       showSearchField = false;
-                          //       categorysearch = false;
-                          //     });
-                          //   },
-                          //   child: ChoiceChip(
-                          //     showCheckmark: false,
-                          //     padding:
-                          //         const EdgeInsets.symmetric(horizontal: 10),
-                          //     label: SizedBox(
-                          //       height: 45,
-                          //       child: Center(
-                          //         child: Text(
-                          //           "${"favorites".tr()} (${favData.length})",
-                          //           style:
-                          //               const TextStyle(color: Colors.white),
-                          //         ),
-                          //       ),
-                          //     ),
-                          //     selected: ind == 1 ? true : false,
-                          //     selectedColor: ColorPalette().topColor,
-                          //     disabledColor: ColorPalette().highlight,
-                          //   ),
-                          // ),
-                          // const SizedBox(width: 10),
-                          // GestureDetector(
-                          //   onTap: () {
-                          //     setState(() {
-                          //       prevIndex = ind;
-                          //       ind = 2;
-                          //       showSearchField = false;
-                          //       categorysearch = false;
-                          //     });
-                          //   },
-                          //   child: ChoiceChip(
-                          //     showCheckmark: false,
-                          //     padding:
-                          //         const EdgeInsets.symmetric(horizontal: 10),
-                          //     label: SizedBox(
-                          //       height: 45,
-                          //       child: Center(
-                          //         child: Text(
-                          //           "${"Series History"} (${hisData.length})",
-                          //           style:
-                          //               const TextStyle(color: Colors.white),
-                          //         ),
-                          //       ),
-                          //     ),
-                          //     selected: ind == 2 ? true : false,
-                          //     selectedColor: ColorPalette().topColor,
-                          //     disabledColor: ColorPalette().highlight,
-                          //   ),
-                          // ),
-                          const SizedBox(width: 10),
-                        ],
+                            // data = displayData!
+                            //     .where((element) => element
+                            //         .name
+                            //         .contains(result1
+                            //             .trimRight()))
+                            //     .expand((element) =>
+                            //         element.data.classify())
+                            //     .toList()
+                            //   ..sort((a, b) =>
+                            //       a.name.compareTo(b.name));
+                            // categorydata = data;
+                            //                     showSearchField = false;
+                            //                     categorysearch = false;
+                            //                     print(
+                            //                         "DATA IN CATEGORY: ${data.length}");
+                            //                   },
+                            //                 );
+                            //               },
+                            //             ),
+                            //           ),
+                            //           selected: ind == 0 ? true : false,
+                            //           selectedColor: ColorPalette().topColor,
+                            //           disabledColor: ColorPalette().highlight,
+                            //         )
+                            //       : ChoiceChip(
+                            //           showCheckmark: false,
+                            //           padding: const EdgeInsets.symmetric(
+                            //               horizontal: 10),
+                            //           label: SizedBox(
+                            //             height: 45,
+                            //             child: Center(
+                            //               child: Text(
+                            //                 dropdownvalue,
+                            //                 style: const TextStyle(
+                            //                     fontFamily: "Poppins"),
+                            //               ),
+                            //             ),
+                            //           ),
+                            //           selected: ind == 0 ? true : false,
+                            //           selectedColor: ColorPalette().topColor,
+                            //           disabledColor: ColorPalette().highlight,
+                            //         ),
+                            // ),
+                            // const SizedBox(width: 10),
+                            // GestureDetector(
+                            //   onTap: () {
+                            //     setState(() {
+                            //       prevIndex = ind;
+                            //       ind = 1;
+                            //       showSearchField = false;
+                            //       categorysearch = false;
+                            //     });
+                            //   },
+                            //   child: ChoiceChip(
+                            //     showCheckmark: false,
+                            //     padding:
+                            //         const EdgeInsets.symmetric(horizontal: 10),
+                            //     label: SizedBox(
+                            //       height: 45,
+                            //       child: Center(
+                            //         child: Text(
+                            //           "${"favorites".tr()} (${favData.length})",
+                            //           style:
+                            //               const TextStyle(color: Colors.white),
+                            //         ),
+                            //       ),
+                            //     ),
+                            //     selected: ind == 1 ? true : false,
+                            //     selectedColor: ColorPalette().topColor,
+                            //     disabledColor: ColorPalette().highlight,
+                            //   ),
+                            // ),
+                            // const SizedBox(width: 10),
+                            // GestureDetector(
+                            //   onTap: () {
+                            //     setState(() {
+                            //       prevIndex = ind;
+                            //       ind = 2;
+                            //       showSearchField = false;
+                            //       categorysearch = false;
+                            //     });
+                            //   },
+                            //   child: ChoiceChip(
+                            //     showCheckmark: false,
+                            //     padding:
+                            //         const EdgeInsets.symmetric(horizontal: 10),
+                            //     label: SizedBox(
+                            //       height: 45,
+                            //       child: Center(
+                            //         child: Text(
+                            //           "${"Series History"} (${hisData.length})",
+                            //           style:
+                            //               const TextStyle(color: Colors.white),
+                            //         ),
+                            //       ),
+                            //     ),
+                            //     selected: ind == 2 ? true : false,
+                            //     selectedColor: ColorPalette().topColor,
+                            //     disabledColor: ColorPalette().highlight,
+                            //   ),
+                            // ),
+                            const SizedBox(width: 10),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 15),
-                    categorysearch == false
-                        ? AnimatedPadding(
-                          duration: const Duration(milliseconds: 400),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: showSearchField ? 20 : 0,
-                          ),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 500),
-                            height: showSearchField ? 50 : 0,
-                            width: double.maxFinite,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    height: 50,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: ColorPalette().highlight,
-                                      borderRadius: BorderRadius.circular(10),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: ColorPalette().highlight
-                                              .darken()
-                                              .withOpacity(1),
-                                          offset: const Offset(2, 2),
-                                          blurRadius: 2,
+                      const SizedBox(height: 15),
+                      categorysearch == false
+                          ? AnimatedPadding(
+                              duration: const Duration(milliseconds: 400),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: showSearchField ? 20 : 0,
+                              ),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 500),
+                                height: showSearchField ? 50 : 0,
+                                width: double.maxFinite,
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Container(
+                                        height: 50,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
                                         ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        SvgPicture.asset(
-                                          "assets/icons/search.svg",
-                                          height: 20,
-                                          width: 20,
-                                          color: ColorPalette().white,
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: AnimatedSwitcher(
-                                            duration: const Duration(
-                                              milliseconds: 300,
-                                            ),
-                                            child:
-                                                showSearchField
-                                                    ? TextField(
-                                                      onChanged: (text) {
-                                                        if (_kList
-                                                                .currentState !=
-                                                            null) {
-                                                          _kList.currentState!
-                                                              .search(text);
-                                                        } else if (_favPage
-                                                                .currentState !=
-                                                            null) {
-                                                          _favPage.currentState!
-                                                              .search(text);
-                                                        } else if (_hisPage
-                                                                .currentState !=
-                                                            null) {
-                                                          _hisPage.currentState!
-                                                              .search(text);
-                                                        }
-                                                        if (mounted) {
-                                                          setState(() {});
-                                                        }
-                                                      },
-                                                      cursorColor:
-                                                          ColorPalette().orange,
-                                                      controller: search,
-                                                      decoration:
-                                                          InputDecoration(
-                                                            hintText:
-                                                                "Search".tr(),
-                                                          ),
-                                                    )
-                                                    : Container(),
+                                        decoration: BoxDecoration(
+                                          color: ColorPalette().highlight,
+                                          borderRadius: BorderRadius.circular(
+                                            10,
                                           ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: ColorPalette().highlight
+                                                  .darken()
+                                                  .withOpacity(1),
+                                              offset: const Offset(2, 2),
+                                              blurRadius: 2,
+                                            ),
+                                          ],
                                         ),
-                                      ],
+                                        child: Row(
+                                          children: [
+                                            SvgPicture.asset(
+                                              "assets/icons/search.svg",
+                                              height: 20,
+                                              width: 20,
+                                              color: ColorPalette().white,
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: AnimatedSwitcher(
+                                                duration: const Duration(
+                                                  milliseconds: 300,
+                                                ),
+                                                child: showSearchField
+                                                    ? TextField(
+                                                        onChanged: (text) {
+                                                          if (_kList
+                                                                  .currentState !=
+                                                              null) {
+                                                            _kList.currentState!
+                                                                .search(text);
+                                                          } else if (_favPage
+                                                                  .currentState !=
+                                                              null) {
+                                                            _favPage
+                                                                .currentState!
+                                                                .search(text);
+                                                          } else if (_hisPage
+                                                                  .currentState !=
+                                                              null) {
+                                                            _hisPage
+                                                                .currentState!
+                                                                .search(text);
+                                                          }
+                                                          if (mounted) {
+                                                            setState(() {});
+                                                          }
+                                                        },
+                                                        cursorColor:
+                                                            ColorPalette()
+                                                                .orange,
+                                                        controller: search,
+                                                        decoration:
+                                                            InputDecoration(
+                                                              hintText: "Search"
+                                                                  .tr(),
+                                                            ),
+                                                      )
+                                                    : Container(),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                    const SizedBox(width: 10),
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _kList.currentState?.search("");
+                                          _favPage.currentState?.search("");
+                                          _hisPage.currentState?.search("");
+                                          search.text = "";
+                                          showSearchField = !showSearchField;
+                                        });
+                                      },
+                                      child: Text(
+                                        "Cancel".tr(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 10),
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _kList.currentState?.search("");
-                                      _favPage.currentState?.search("");
-                                      _hisPage.currentState?.search("");
-                                      search.text = "";
-                                      showSearchField = !showSearchField;
-                                    });
-                                  },
-                                  child: Text(
-                                    "Cancel".tr(),
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                        : const SizedBox(),
-                    if (showSearchField) ...{const SizedBox(height: 20)},
-                    Expanded(
-                      child: Scrollbar(
-                        controller: _scrollController,
-                        child:
-                            ind == 0
-                                ? dropdownvalue.contains("ALL") ||
+                              ),
+                            )
+                          : const SizedBox(),
+                      if (showSearchField) ...{const SizedBox(height: 20)},
+                      Expanded(
+                        child: Scrollbar(
+                          controller: _scrollController,
+                          child: ind == 0
+                              ? dropdownvalue.contains("ALL") ||
                                         dropdownvalue == ""
                                     ? SeriesListPage(
-                                      key: _kList,
-                                      controller: _scrollController,
-                                      data: seriesData,
-                                      showSearchField: showSearchField,
-                                      onUpdateCallback: (item) {
-                                        setState(() {
-                                          print("Valueee: $item");
-                                        });
-                                      },
-                                    )
+                                        key: _kList,
+                                        controller: _scrollController,
+                                        data: seriesData,
+                                        showSearchField: showSearchField,
+                                        onUpdateCallback: (item) {
+                                          setState(() {
+                                            print("Valueee: $item");
+                                          });
+                                        },
+                                      )
                                     : SeriesCategoryPage(
-                                      key: _catPage,
-                                      categorydata: categorydata,
-                                      showsearchfield: categorysearch,
-                                      onUpdateCallback: (item) {
-                                        setState(() {
-                                          print("Valueee: $item");
-                                        });
-                                      },
-                                    )
-                                : ind == 1
-                                ? FavSeriesPage(
+                                        key: _catPage,
+                                        categorydata: categorydata,
+                                        showsearchfield: categorysearch,
+                                        onUpdateCallback: (item) {
+                                          setState(() {
+                                            print("Valueee: $item");
+                                          });
+                                        },
+                                      )
+                              : ind == 1
+                              ? FavSeriesPage(
                                   key: _favPage,
                                   data: favData,
                                   onUpdateCallback: (item) {
@@ -784,14 +787,11 @@ class _SeriesPageState extends State<SeriesPage> {
                                     });
                                   },
                                 )
-                                : SeriesHistoryPage(
-                                  key: _hisPage,
-                                  data: hisData,
-                                ),
+                              : SeriesHistoryPage(key: _hisPage, data: hisData),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
             update == true ? UIAdditional().loader() : Container(),
           ],
         ),

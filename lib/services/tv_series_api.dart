@@ -118,6 +118,7 @@ class TVSeriesAPI {
           .then((response) {
             if (response.statusCode == 200) {
               final List data = response.data['cast'];
+              print("CAST: $data");
               _castViewModel.populate(
                 data.map((e) => CastModel.fromJson(e)).toList(),
               );

@@ -1,0 +1,385 @@
+// ignore_for_file: must_be_immutable, deprecated_member_use, avoid_print, use_build_context_synchronously
+
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:page_transition/page_transition.dart';
+import 'package:seizhtv/extension/color.dart';
+import 'package:seizhtv/m3u/extension.dart';
+import 'package:seizhtv/models/xtreams_models/xtream_series_data.dart';
+import 'package:seizhtv/views/landing_page/xtream_pages/series/xtream_series_details.dart';
+
+import '../../../../data_containers/favorites.dart';
+import '../../../../globals/data.dart';
+import '../../../../globals/favorite_button.dart';
+import '../../../../globals/network_image_viewer.dart';
+import '../../../../globals/palette.dart';
+import '../../../../m3u/classified_data.dart';
+import '../../../../m3u/m3u_entry.dart';
+import '../../../../m3u/zm3u_handler.dart';
+
+class XtreamSeriesCategoryPage extends StatefulWidget {
+  XtreamSeriesCategoryPage({
+    super.key,
+    required this.categorydata,
+    required this.showsearchfield,
+    required this.onUpdateCallback,
+  });
+
+  final List<XtreamSeriesDataModel> categorydata;
+  final ValueChanged<M3uEntry> onUpdateCallback;
+  late bool showsearchfield;
+
+  @override
+  State<XtreamSeriesCategoryPage> createState() =>
+      XtreamSeriesCategoryPageState();
+}
+
+class XtreamSeriesCategoryPageState extends State<XtreamSeriesCategoryPage> {
+  static final Favorites _vm1 = Favorites.instance;
+  static final ZM3UHandler _handler = ZM3UHandler.instance;
+  List<ClassifiedData> favData = [];
+  static final Favorites _fav = Favorites.instance;
+  late List<ClassifiedData> _favdata;
+  late List<XtreamSeriesDataModel> _displayData = [];
+  final TextEditingController _search = TextEditingController();
+  String searchText = "";
+
+  fetchFav() async {
+    await _handler
+        .getDataFrom(type: CollectionType.favorites, refId: refId!)
+        .then((value) {
+          if (value != null) {
+            _vm1.populate(value);
+          }
+        });
+  }
+
+  initFavStream() {
+    _fav.stream.listen((event) {
+      _favdata = List.from(event.series);
+
+      for (final ClassifiedData item in _favdata) {
+        late final List<ClassifiedData> data = item.data.classify()
+          ..sort((a, b) => a.name.compareTo(b.name));
+
+        favData.addAll(List.from(data));
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    fetchFav();
+    initFavStream();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        widget.showsearchfield == true
+            ? AnimatedPadding(
+                duration: const Duration(milliseconds: 400),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 500),
+                  height: 50,
+                  width: double.maxFinite,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 50,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          decoration: BoxDecoration(
+                            color: ColorPalette().highlight,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: ColorPalette().highlight
+                                    .darken()
+                                    .withOpacity(1),
+                                offset: const Offset(2, 2),
+                                blurRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              SvgPicture.asset(
+                                "assets/icons/search.svg",
+                                height: 20,
+                                width: 20,
+                                color: ColorPalette().white,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 300),
+                                  child: TextField(
+                                    onChanged: (text) {
+                                      print("SEARCH TEXT: $text");
+                                      if (text.isEmpty) {
+                                        _displayData = List.from(
+                                          widget.categorydata,
+                                        );
+                                      } else {
+                                        text.isEmpty
+                                            ? _displayData = List.from(
+                                                widget.categorydata,
+                                              )
+                                            : _displayData = List.from(
+                                                widget.categorydata
+                                                    .where(
+                                                      (element) => element.title
+                                                          .toLowerCase()
+                                                          .contains(
+                                                            text.toLowerCase(),
+                                                          ),
+                                                    )
+                                                    .toList(),
+                                              );
+                                      }
+                                      if (mounted) setState(() {});
+                                      searchText = text;
+                                    },
+                                    cursorColor: ColorPalette().orange,
+                                    controller: _search,
+                                    decoration: InputDecoration(
+                                      hintText: "Search".tr(),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            searchText = "";
+                            _search.text = "";
+                            widget.showsearchfield = false;
+                          });
+                        },
+                        child: Text(
+                          "Cancel".tr(),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : const SizedBox(),
+        const SizedBox(height: 10),
+        Expanded(
+          child: searchText != "" && _displayData.isEmpty
+              ? Center(
+                  child: Text(
+                    "No Result Found for `$searchText`",
+                    style: TextStyle(color: Colors.white.withOpacity(.5)),
+                  ),
+                )
+              : GridView.builder(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: calculateCrossAxisCount(context),
+                    childAspectRatio: .8,
+                    crossAxisSpacing: 10,
+                    mainAxisExtent: 150,
+                  ),
+                  itemCount: searchText == ""
+                      ? widget.categorydata.length
+                      : _displayData.length,
+                  itemBuilder: (context, i) {
+                    final XtreamSeriesDataModel datas = searchText == ""
+                        ? widget.categorydata[i]
+                        : _displayData[i];
+                    bool isFavorite = false;
+                    // for (final ClassifiedData fav in favData) {
+                    //   if (datas.name == fav.name) {
+                    //     if (fav.data.length == datas.data.length) {
+                    //       isFavorite = true;
+                    //     }
+                    //   }
+                    // }
+
+                    return GestureDetector(
+                      onTap: () async {
+                        Navigator.push(
+                          context,
+                          PageTransition(
+                            child: XtreamSeriesDetailsPage(
+                              data: _displayData[i],
+                              title: _displayData[i].title,
+                              year: _displayData[i].year,
+                            ),
+                            type: PageTransitionType.rightToLeft,
+                          ),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                        child: Stack(
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.only(top: 10, right: 10),
+                              child: LayoutBuilder(
+                                builder: (context, c) {
+                                  final double w = c.maxWidth;
+                                  final double h = c.maxHeight;
+                                  return ClipRRect(
+                                    borderRadius: BorderRadius.circular(5),
+                                    child: NetworkImageViewer(
+                                      url: datas.cover,
+                                      title: datas.title,
+                                      width: w,
+                                      height: h,
+                                      fit: BoxFit.cover,
+                                      color: ColorPalette().highlight,
+                                    ),
+                                  );
+                                },
+                              ),
+                              // Column(
+                              //   crossAxisAlignment:
+                              //       CrossAxisAlignment.start,
+                              //   children: [
+                              //     ClipRRect(
+                              //       borderRadius:
+                              //           BorderRadius.circular(5),
+                              //       child: NetworkImageViewer(
+                              //         url: datas
+                              //             .data[0].attributes['tvg-logo'],
+                              //         width: w,
+                              //         height: 75,
+                              //         fit: BoxFit.cover,
+                              //         color: highlight,
+                              //       ),
+                              //     ),
+                              //     const SizedBox(height: 2),
+                              //     Tooltip(
+                              //       message: datas.name,
+                              //       child: Text(
+                              //         datas.name,
+                              //         style:
+                              //             const TextStyle(fontSize: 12),
+                              //         maxLines: 2,
+                              //         overflow: TextOverflow.ellipsis,
+                              //       ),
+                              //     ),
+                              //     Row(
+                              //       children: [
+                              //         Text("${datas.data.length} ",
+                              //             style: const TextStyle(
+                              //                 fontSize: 12,
+                              //                 color: Colors.grey)),
+                              //         Text("Episodes".tr(),
+                              //             style: const TextStyle(
+                              //                 fontSize: 12,
+                              //                 color: Colors.grey)),
+                              //       ],
+                              //     ),
+                              //   ],
+                              // ),
+                            ),
+                            // Positioned(
+                            //   top: 0,
+                            //   right: 0,
+                            //   child: SizedBox(
+                            //     height: 25,
+                            //     width: 25,
+                            //     child: FavoriteIconButton(
+                            //       onPressedCallback: (bool isFavorite) async {
+                            //         if (isFavorite) {
+                            //           showDialog(
+                            //             barrierDismissible: false,
+                            //             context: context,
+                            //             builder: (BuildContext context) {
+                            //               Future.delayed(
+                            //                 const Duration(seconds: 5),
+                            //                 () {
+                            //                   Navigator.of(context).pop(true);
+                            //                 },
+                            //               );
+                            //               return Dialog(
+                            //                 alignment: Alignment.topCenter,
+                            //                 shape: RoundedRectangleBorder(
+                            //                   borderRadius:
+                            //                       BorderRadius.circular(10.0),
+                            //                 ),
+                            //                 child: Container(
+                            //                   padding:
+                            //                       const EdgeInsets.symmetric(
+                            //                         horizontal: 20,
+                            //                       ),
+                            //                   child: Row(
+                            //                     mainAxisAlignment:
+                            //                         MainAxisAlignment
+                            //                             .spaceBetween,
+                            //                     children: [
+                            //                       Text(
+                            //                         "Added_to_Favorites".tr(),
+                            //                         style: const TextStyle(
+                            //                           fontSize: 16,
+                            //                         ),
+                            //                       ),
+                            //                       IconButton(
+                            //                         padding:
+                            //                             const EdgeInsets.all(0),
+                            //                         onPressed: () {
+                            //                           Navigator.of(
+                            //                             context,
+                            //                           ).pop();
+                            //                         },
+                            //                         icon: const Icon(
+                            //                           Icons.close_rounded,
+                            //                         ),
+                            //                       ),
+                            //                     ],
+                            //                   ),
+                            //                 ),
+                            //               );
+                            //             },
+                            //           );
+                            //           for (M3uEntry m3u in datas.data) {
+                            //             await m3u.addToFavorites(refId!);
+                            //             widget.onUpdateCallback(m3u);
+                            //           }
+                            //         } else {
+                            //           for (M3uEntry m3u in datas.data) {
+                            //             await m3u.removeFromFavorites(refId!);
+                            //             widget.onUpdateCallback(m3u);
+                            //           }
+                            //         }
+                            //         await fetchFav();
+                            //       },
+                            //       initValue: isFavorite,
+                            //       iconSize: 20,
+                            //     ),
+                            //   ),
+                            // ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  int calculateCrossAxisCount(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    int crossAxisCount = (screenWidth / 150)
+        .floor(); // Calculate based on item width
+    return crossAxisCount < 3 ? 3 : crossAxisCount;
+  }
+}

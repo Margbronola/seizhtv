@@ -62,7 +62,7 @@ class Routes {
         );
       case "/landing-page":
         return PageTransition(
-          child: const MainLandingPage(),
+          child: MainLandingPage(),
           type: PageTransitionType.rightToLeft,
           duration: _transitionDuration,
           reverseDuration: _transitionDuration,

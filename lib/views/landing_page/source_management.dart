@@ -18,6 +18,7 @@ import '../../m3u/m3u_handler.dart';
 import '../../m3u/zm3u_handler.dart';
 import '../../models/source.dart';
 import '../auth/children/load_playlist.dart';
+import '../auth/children/load_source.dart';
 import '../auth/children/load_xtream_code.dart';
 
 class SourceManagementPage extends StatefulWidget {
@@ -36,10 +37,12 @@ class _SourceManagementPageState extends State<SourceManagementPage> {
   Future<void> onSuccess(File? data) async {
     if (data == null) return;
     isLoading = true;
-    if (mounted) setState(() {});
-    await _cacher.saveFile(data);
-    await _cacher.saveDate(DateTime.now().toString());
-    print("DATA ON SUCESS: $data");
+    setState(() {
+      _cacher.saveFile(data);
+      _cacher.saveDate(DateTime.now().toString());
+      file = _cacher.filePath;
+      print("DATA ON SUCESS: $data");
+    });
     await Navigator.pushReplacementNamed(context, "/landing-page");
     isLoading = false;
     if (mounted) setState(() {});
@@ -56,11 +59,6 @@ class _SourceManagementPageState extends State<SourceManagementPage> {
         style: const TextStyle(color: Colors.white, fontSize: 16),
       );
     });
-
-    // await downloadFile(
-    //   source: source,
-    //   filename: "data.m3u",
-    // );
 
     handler
         .network(
@@ -89,6 +87,17 @@ class _SourceManagementPageState extends State<SourceManagementPage> {
           if (value == null) return;
           _cacher.savePlaylistName(source.name);
           await _cacher.saveUrl(source.source);
+          await _cacher.removeXtreamServer();
+          await _cacher.removeXtreamUser();
+          setState(() {
+            userInfo = null;
+            liveXtreamData = [];
+            movieXtreamData = [];
+            seriesXtreamData = [];
+            xtreamLiveCategory = [];
+            xtreamMovieCategory = [];
+            xtreamSeriesCategory = [];
+          });
           await onSuccess(value);
         })
         .onError((error, stackTrace) {
@@ -137,6 +146,14 @@ class _SourceManagementPageState extends State<SourceManagementPage> {
                           physics: const NeverScrollableScrollPhysics(),
                           itemBuilder: (_, i) {
                             final M3uSource source = sources[i];
+                            String basedURL = "";
+
+                            if (source.isOnLogin == true) {
+                              Uri uri = Uri.parse(source.source);
+                              basedURL =
+                                  '${uri.scheme}://${uri.host}:${uri.port}';
+                            }
+
                             return GestureDetector(
                               onTap: () async {
                                 print("SOURCE (ONTAP): ${source.source}");
@@ -158,21 +175,19 @@ class _SourceManagementPageState extends State<SourceManagementPage> {
                                   child: ListTile(
                                     title: Text(source.name),
                                     trailing: PopupMenuButton<String>(
-                                      itemBuilder:
-                                          (_) =>
-                                              [
-                                                    "Load_Source".tr(),
-                                                    "Update_source".tr(),
-                                                    "Delete_Source".tr(),
-                                                  ]
-                                                  .map(
-                                                    (e) =>
-                                                        PopupMenuItem<String>(
-                                                          value: e,
-                                                          child: Text(e),
-                                                        ),
-                                                  )
-                                                  .toList(),
+                                      itemBuilder: (_) =>
+                                          [
+                                                "Load_Source".tr(),
+                                                "Update_source".tr(),
+                                                "Delete_Source".tr(),
+                                              ]
+                                              .map(
+                                                (e) => PopupMenuItem<String>(
+                                                  value: e,
+                                                  child: Text(e),
+                                                ),
+                                              )
+                                              .toList(),
                                       onSelected: (String? value) async {
                                         if (value == null) return;
                                         print(value);
@@ -197,9 +212,8 @@ class _SourceManagementPageState extends State<SourceManagementPage> {
                                                 isUpdate: true,
                                                 data: source,
                                               ),
-                                              type:
-                                                  PageTransitionType
-                                                      .leftToRight,
+                                              type: PageTransitionType
+                                                  .leftToRight,
                                             ),
                                           );
                                         } else {
@@ -217,45 +231,61 @@ class _SourceManagementPageState extends State<SourceManagementPage> {
                                       offset: const Offset(0, 30),
                                     ),
                                     subtitle: Text(
-                                      source.source,
+                                      source.isOnLogin == false
+                                          ? source.source
+                                          : basedURL,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     leading: ClipRRect(
                                       borderRadius: BorderRadius.circular(60),
-                                      child:
-                                          user == null
-                                              ? Image.asset(
-                                                "assets/icons/default-picture.jpeg",
-                                                height: 40,
-                                                width: 40,
-                                                fit: BoxFit.cover,
-                                              )
-                                              : user!.photoUrl == null
-                                              ? Image.asset(
-                                                "assets/icons/default-picture.jpeg",
-                                                height: 40,
-                                                width: 40,
-                                                fit: BoxFit.cover,
-                                              )
-                                              : CachedNetworkImage(
-                                                imageUrl: user!.photoUrl!,
-                                                height: 40,
-                                                width: 40,
-                                              ),
+                                      child: user == null
+                                          ? Image.asset(
+                                              "assets/icons/default-picture.jpeg",
+                                              height: 40,
+                                              width: 40,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : user!.photoUrl == null
+                                          ? Image.asset(
+                                              "assets/icons/default-picture.jpeg",
+                                              height: 40,
+                                              width: 40,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : CachedNetworkImage(
+                                              imageUrl: user!.photoUrl!,
+                                              height: 40,
+                                              width: 40,
+                                            ),
                                     ),
                                   ),
                                 ),
                               ),
                             );
                           },
-                          separatorBuilder:
-                              (_, i) => const SizedBox(height: 10),
+                          separatorBuilder: (_, i) =>
+                              const SizedBox(height: 10),
                           itemCount: sources.length,
                         );
                       },
                     ),
                     const SizedBox(height: 50),
+                    UIAdditional().button2(
+                      title: 'Login with XTREAM Codes API',
+                      assetPath: "assets/icons/xtream.svg",
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          PageTransition(
+                            child: const LoadXtreamCodePage(),
+                            type: PageTransitionType.rightToLeft,
+                          ),
+                        );
+                      },
+                      foregroundColor: Colors.black,
+                    ),
+                    const SizedBox(height: 10),
                     UIAdditional().button2(
                       title: 'Load_your_source'.tr(),
                       assetPath: "assets/icons/users.svg",
@@ -263,7 +293,7 @@ class _SourceManagementPageState extends State<SourceManagementPage> {
                         await Navigator.push(
                           context,
                           PageTransition(
-                            child: const LoadXtreamCodePage(),
+                            child: const LoadSourcePage(),
                             type: PageTransitionType.rightToLeft,
                           ),
                         );

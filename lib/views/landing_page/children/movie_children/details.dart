@@ -101,18 +101,17 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                     child: CachedNetworkImage(
                       fit: BoxFit.cover,
                       imageUrl: "${Network.imageUrl}${result.backdropPath}",
-                      placeholder:
-                          (context, url) => UIAdditional().shimmerLoading(
+                      placeholder: (context, url) =>
+                          UIAdditional().shimmerLoading(
                             ColorPalette().highlight,
                             200,
                             width: double.infinity,
                           ),
-                      errorWidget:
-                          (context, url, error) => Image.asset(
-                            "${widget.data.attributes['tvg-logo']}",
-                            // "assets/images/logo.png",
-                            fit: BoxFit.fitHeight,
-                          ),
+                      errorWidget: (context, url, error) => Image.asset(
+                        "${widget.data.attributes['tvg-logo']}",
+                        // "assets/images/logo.png",
+                        fit: BoxFit.fitHeight,
+                      ),
                     ),
                   ),
                   Container(
@@ -179,7 +178,10 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                                 widget.data.addToHistory(refId!);
                                 await VideoLoader().loadVideo(
                                   context,
-                                  widget.data,
+                                  link: widget.data.link,
+                                  title: widget.data.title,
+                                  type: "",
+                                  image: widget.data.attributes['tvg-logo'],
                                 );
                               },
                             ),
@@ -322,7 +324,7 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                   height: 200,
                   width: double.infinity,
                   child: NetworkImageViewer(
-                    url: "${widget.data.attributes['tvg-logo']}",
+                    url: widget.data.attributes['tvg-logo'],
                     title: "false",
                     width: 85,
                     height: 60,
@@ -359,7 +361,10 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                               widget.data.addToHistory(refId!);
                               await VideoLoader().loadVideo(
                                 context,
-                                widget.data,
+                                link: widget.data.link,
+                                title: widget.data.title,
+                                type: "",
+                                image: widget.data.attributes['tvg-logo'],
                               );
                             },
                           ),

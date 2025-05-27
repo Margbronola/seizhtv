@@ -54,17 +54,36 @@ class _EpisodePageState extends State<EpisodePage> {
 
     if (dropdownvalue == "") {
       for (final M3uEntry datas in widget.data.data) {
-        if (datas.attributes['tvg-name'].toString().contains(
-          'S0${seasonsNum[0]}',
-        )) {
-          data.add(datas);
+        print("${datas.attributes['tvg-name']}");
+        if (datas.attributes['tvg-name'] != null) {
+          if (datas.attributes['tvg-name'].toString().contains(
+            'S0${seasonsNum[0]}',
+          )) {
+            data.add(datas);
+          }
+        } else {
+          try {
+            print("didi sa else sumulod");
+            print(
+              "ATTRIBUTES: ${datas.title} - ${datas.attributes['title-clean']}",
+            );
+            // if (datas.attributes['title-clean']
+            // .toString()
+            // .contains('S0${seasonsNum[0]}')
+            // ) {
+            data.add(datas);
+            print("DATA: $data");
+            // }
+          } catch (e) {
+            print("ERROR: $e");
+          }
         }
       }
     }
 
     print("SEASONNUM: ${seasonsNum.length}");
     print("DROPDOWN: $dropdownvalue");
-
+    fetchFav();
     super.initState();
   }
 
@@ -106,50 +125,49 @@ class _EpisodePageState extends State<EpisodePage> {
                     widget.seasonLength == 1
                         ? Container(width: 150)
                         : Container(
-                          height: 50,
-                          width: 130,
-                          margin: const EdgeInsets.only(left: 10),
-                          padding: const EdgeInsets.symmetric(horizontal: 15),
-                          decoration: BoxDecoration(
-                            color: ColorPalette().highlight,
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          child: DropdownButton(
-                            elevation: 0,
-                            isExpanded: true,
-                            underline: Container(),
-                            items:
-                                seasonsNum.map((value) {
-                                  return DropdownMenuItem(
-                                    value: value,
-                                    child: Text("Season $value"),
-                                  );
-                                }).toList(),
-                            value:
-                                dropdownvalue == ""
-                                    ? seasonsNum[0]
-                                    : dropdownvalue,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontFamily: "Poppins",
+                            height: 50,
+                            width: 130,
+                            margin: const EdgeInsets.only(left: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 15),
+                            decoration: BoxDecoration(
+                              color: ColorPalette().highlight,
+                              borderRadius: BorderRadius.circular(50),
                             ),
-                            icon: const Icon(Icons.keyboard_arrow_down),
-                            onChanged: (value) {
-                              setState(() {
-                                dropdownvalue = value!;
-                                print("DROPDOWN VALUE: $dropdownvalue");
-                                data.clear();
-                                for (final M3uEntry datas in widget.data.data) {
-                                  if (datas.attributes['tvg-name']
-                                      .toString()
-                                      .contains('S0$dropdownvalue')) {
-                                    data.add(datas);
+                            child: DropdownButton(
+                              elevation: 0,
+                              isExpanded: true,
+                              underline: Container(),
+                              items: seasonsNum.map((value) {
+                                return DropdownMenuItem(
+                                  value: value,
+                                  child: Text("Season $value"),
+                                );
+                              }).toList(),
+                              value: dropdownvalue == ""
+                                  ? seasonsNum[0]
+                                  : dropdownvalue,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontFamily: "Poppins",
+                              ),
+                              icon: const Icon(Icons.keyboard_arrow_down),
+                              onChanged: (value) {
+                                setState(() {
+                                  dropdownvalue = value!;
+                                  print("DROPDOWN VALUE: $dropdownvalue");
+                                  data.clear();
+                                  for (final M3uEntry datas
+                                      in widget.data.data) {
+                                    if (datas.attributes['tvg-name']
+                                        .toString()
+                                        .contains('S0$dropdownvalue')) {
+                                      data.add(datas);
+                                    }
                                   }
-                                }
-                              });
-                            },
+                                });
+                              },
+                            ),
                           ),
-                        ),
                     // Expanded(
                     //   child: LayoutBuilder(
                     //     builder: (_, c) {
@@ -260,14 +278,21 @@ class _EpisodePageState extends State<EpisodePage> {
                   itemBuilder: (_, i) {
                     final M3uEntry e = data[i];
                     print("S0$dropdownvalue");
-                    print(
-                      "${e.attributes['tvg-name']} - ${e.attributes['tvg-name'].toString().contains("S0$dropdownvalue ")}",
-                    );
+                    // print("${e.attributes['tvg-logo']}");
+                    // print(
+                    //   "${e.attributes['tvg-logo']} - ${e.attributes['tvg-name'].toString().contains("S0$dropdownvalue ")}",
+                    // );
 
                     return ListTile(
                       onTap: () async {
                         e.addToHistory(refId!);
-                        await VideoLoader().loadVideo(context, e);
+                        await VideoLoader().loadVideo(
+                          context,
+                          link: e.link,
+                          title: e.title,
+                          type: "",
+                          image: e.attributes['tvg-logo'],
+                        );
                       },
                       contentPadding: EdgeInsets.zero,
                       trailing: FavoriteIconButton(
@@ -287,7 +312,7 @@ class _EpisodePageState extends State<EpisodePage> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: NetworkImageViewer(
-                            url: e.attributes['tvg-logo']!,
+                            url: e.attributes['tvg-logo'],
                             title: "false",
                             height: 60,
                             width: 85,
@@ -296,11 +321,13 @@ class _EpisodePageState extends State<EpisodePage> {
                           ),
                         ),
                       ),
-                      title: Text(e.attributes['tvg-name']),
+                      title: Text(
+                        e.attributes['tvg-name'] ?? e.attributes['title-clean'],
+                      ),
                     );
                   },
-                  separatorBuilder:
-                      (_, i) => Divider(color: Colors.white.withOpacity(.3)),
+                  separatorBuilder: (_, i) =>
+                      Divider(color: Colors.white.withOpacity(.3)),
                 ),
               ],
             ),

@@ -91,8 +91,9 @@ class _HistoryPageState extends State<HistoryPage> {
           final List<ClassifiedData> series = result.series;
           final List<ClassifiedData> live = result.live;
           final List<ClassifiedData> movies = result.movies;
-          final List<M3uEntry> liveData =
-              live.expand((element) => element.data).toList();
+          final List<M3uEntry> liveData = live
+              .expand((element) => element.data)
+              .toList();
 
           if (live.isEmpty && series.isEmpty && result.movies.isEmpty) {
             return const Center(child: Text("No data added to history"));
@@ -129,7 +130,13 @@ class _HistoryPageState extends State<HistoryPage> {
                                 onTap: () async {
                                   print("DATA CLICK: $e");
                                   e.addToHistory(refId!);
-                                  await VideoLoader().loadVideo(context, e);
+                                  await VideoLoader().loadVideo(
+                                    context,
+                                    link: e.link,
+                                    title: e.title,
+                                    type: "",
+                                    image: e.attributes['tvg-logo'],
+                                  );
                                   // await showModalBottomSheet(
                                   //     context: context,
                                   //     isDismissible: true,
@@ -241,7 +248,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                       );
                                     },
                                     child: NetworkImageViewer(
-                                      url: d.attributes['tvg-logo']!,
+                                      url: d.attributes['tvg-logo'],
                                       width: 150,
                                       height: 150,
                                       color: ColorPalette().card,
@@ -339,7 +346,7 @@ class _HistoryPageState extends State<HistoryPage> {
                                       );
                                     },
                                     child: NetworkImageViewer(
-                                      url: d.data[0].attributes['tvg-logo']!,
+                                      url: d.data[0].attributes['tvg-logo'],
                                       width: 150,
                                       height: 150,
                                       color: ColorPalette().card,

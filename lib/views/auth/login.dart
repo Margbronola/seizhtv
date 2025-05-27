@@ -131,12 +131,14 @@ class _LoginPageState extends State<LoginPage> {
                             .login(_email.text, _password.text)
                             .then((u) async {
                               if (u != null) {
-                                refId = u.user.uid;
-                                user = M3uUser.fromProvider(u);
-                                _cacher.savePassword(_password.text);
-                                _cacher.saveRefID(refId!);
-                                _cacher.saveM3uUser(user!);
-                                _cacher.saveLoginType(0);
+                                setState(() {
+                                  refId = u.user.uid;
+                                  user = M3uUser.fromProvider(u);
+                                  _cacher.savePassword(_password.text);
+                                  _cacher.saveRefID(refId!);
+                                  _cacher.saveM3uUser(user!);
+                                  _cacher.saveLoginType(0);
+                                });
                                 print("USER : $user");
                                 print("REFID SA MAIN AUTH : $refId");
                                 // if (sourceUrl != null) {
@@ -180,17 +182,16 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         TextSpan(
                           text: "Register".tr(),
-                          recognizer:
-                              TapGestureRecognizer()
-                                ..onTap = () async {
-                                  await Navigator.push(
-                                    context,
-                                    PageTransition(
-                                      child: const RegisterPage(),
-                                      type: PageTransitionType.leftToRight,
-                                    ),
-                                  );
-                                },
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () async {
+                              await Navigator.push(
+                                context,
+                                PageTransition(
+                                  child: const RegisterPage(),
+                                  type: PageTransitionType.leftToRight,
+                                ),
+                              );
+                            },
                           style: TextStyle(
                             color: ColorPalette().orange,
                             fontWeight: FontWeight.w600,
@@ -281,11 +282,10 @@ class _LoginPageState extends State<LoginPage> {
                           const TextSpan(text: "\n"),
                           TextSpan(
                             text: 'Terms_&_Conditions'.tr(),
-                            recognizer:
-                                TapGestureRecognizer()
-                                  ..onTap = () {
-                                    print('Terms & Conditions');
-                                  },
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                print('Terms & Conditions');
+                              },
                             style: TextStyle(
                               height: 1.3,
                               color: ColorPalette().orange,

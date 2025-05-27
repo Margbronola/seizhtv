@@ -62,6 +62,7 @@ class SeriesListPageState extends State<SeriesListPage> {
   @override
   void initState() {
     super.initState();
+    print("SERIES DATA: ${widget.data}");
     searchData = widget.data;
   }
 
@@ -78,13 +79,14 @@ class SeriesListPageState extends State<SeriesListPage> {
         text.isEmpty
             ? searchData = List.from(widget.data)
             : searchData = List.from(
-              widget.data
-                  .where(
-                    (element) =>
-                        element.name.toLowerCase().contains(text.toLowerCase()),
-                  )
-                  .toList(),
-            );
+                widget.data
+                    .where(
+                      (element) => element.name.toLowerCase().contains(
+                        text.toLowerCase(),
+                      ),
+                    )
+                    .toList(),
+              );
       }
       _displayData.sort((a, b) => a.name.compareTo(b.name));
 
@@ -109,16 +111,15 @@ class SeriesListPageState extends State<SeriesListPage> {
     return Column(
       children: [
         Expanded(
-          child:
-              widget.showSearchField == true
-                  ? searchData!.isEmpty
-                      ? Center(
+          child: widget.showSearchField == true
+              ? searchData!.isEmpty
+                    ? Center(
                         child: Text(
                           "No Result Found for `$searchText`",
                           style: TextStyle(color: Colors.white.withOpacity(.5)),
                         ),
                       )
-                      : GridView.builder(
+                    : GridView.builder(
                         shrinkWrap: true,
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         gridDelegate:
@@ -200,11 +201,10 @@ class SeriesListPageState extends State<SeriesListPage> {
                                             5,
                                           ),
                                           child: NetworkImageViewer(
-                                            url:
-                                                searchData![i]
-                                                    .data[0]
-                                                    .attributes['tvg-logo'],
-                                            title: searchData![i].data[0].title,
+                                            url: searchData![i]
+                                                .data[0]
+                                                .attributes['tvg-logo'],
+                                            title: searchData![i].name,
                                             width: w,
                                             height: h,
                                             fit: BoxFit.cover,
@@ -222,9 +222,7 @@ class SeriesListPageState extends State<SeriesListPage> {
                                     height: 25,
                                     width: 25,
                                     child: FavoriteIconButton(
-                                      onPressedCallback: (
-                                        bool isFavorite,
-                                      ) async {
+                                      onPressedCallback: (bool isFavorite) async {
                                         if (isFavorite) {
                                           showDialog(
                                             barrierDismissible: false,
@@ -312,393 +310,382 @@ class SeriesListPageState extends State<SeriesListPage> {
                           );
                         },
                       )
-                  : ListView(
-                    controller: widget.controller..addListener(_scrollListener),
-                    children: [
-                      if (widget.data.isNotEmpty) ...{
-                        StreamBuilder<List<TopSeriesModel>>(
-                          stream: _viewModel.stream,
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData && !snapshot.hasError) {
-                              if (snapshot.data!.isNotEmpty) {
-                                final List<TopSeriesModel> result =
-                                    snapshot.data!;
-                                late ClassifiedData cd;
-                                late TopSeriesModel tm;
+              : ListView(
+                  controller: widget.controller..addListener(_scrollListener),
+                  children: [
+                    if (widget.data.isNotEmpty) ...{
+                      StreamBuilder<List<TopSeriesModel>>(
+                        stream: _viewModel.stream,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData && !snapshot.hasError) {
+                            if (snapshot.data!.isNotEmpty) {
+                              final List<TopSeriesModel> result =
+                                  snapshot.data!;
+                              late ClassifiedData cd;
+                              late TopSeriesModel tm;
 
-                                for (final TopSeriesModel tsm in result) {
-                                  print("TOP SERIES DATA: ${tsm.title}");
-                                  for (final ClassifiedData c in widget.data) {
-                                    // print("CLASSIFIED DATA: $c");
-                                    if (c.name.contains(tsm.title)) {
-                                      tm = tsm;
-                                      cd = c;
-                                    }
+                              for (final TopSeriesModel tsm in result) {
+                                print("TOP SERIES DATA: ${tsm.title}");
+                                for (final ClassifiedData c in widget.data) {
+                                  // print("CLASSIFIED DATA: $c");
+                                  if (c.name.contains(tsm.title)) {
+                                    tm = tsm;
+                                    cd = c;
                                   }
                                 }
+                              }
 
-                                TVSeriesAPI().getTVVideos(id: tm.id);
+                              TVSeriesAPI().getTVVideos(id: tm.id);
 
-                                return Column(
-                                  children: [
-                                    StreamBuilder<List<Video>>(
-                                      stream: _videoViewModel.stream,
-                                      builder: (context, snapshot) {
-                                        if (snapshot.hasData &&
-                                            !snapshot.hasError) {
-                                          if (snapshot.data!.isNotEmpty) {
-                                            final List<Video> result =
-                                                snapshot.data!;
-                                            return Videoplayer(
-                                              url: result[0].key,
-                                            );
-                                          }
+                              return Column(
+                                children: [
+                                  StreamBuilder<List<Video>>(
+                                    stream: _videoViewModel.stream,
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData &&
+                                          !snapshot.hasError) {
+                                        if (snapshot.data!.isNotEmpty) {
+                                          final List<Video> result =
+                                              snapshot.data!;
+                                          return Videoplayer(
+                                            url: result[0].key,
+                                          );
                                         }
-                                        return const Center(
-                                          child: CircularProgressIndicator(
-                                            color: Colors.grey,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          PageTransition(
-                                            child: SeriesDetailsPage(
-                                              data: cd,
-                                              title: tm.title,
-                                            ),
-                                            type:
-                                                PageTransitionType.rightToLeft,
-                                          ),
-                                        );
-                                      },
-                                      child: Container(
-                                        width: size.width,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 20,
-                                          vertical: 15,
+                                      }
+                                      return const Center(
+                                        child: CircularProgressIndicator(
+                                          color: Colors.grey,
                                         ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              cd.name,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 22,
-                                                height: 1.1,
+                                      );
+                                    },
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        PageTransition(
+                                          child: SeriesDetailsPage(
+                                            data: cd,
+                                            title: tm.title,
+                                          ),
+                                          type: PageTransitionType.rightToLeft,
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      width: size.width,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 15,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            cd.name,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 22,
+                                              height: 1.1,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                DateFormat(
+                                                  'MMM dd, yyyy',
+                                                ).format(tm.date!),
                                               ),
-                                            ),
-                                            const SizedBox(height: 10),
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  DateFormat(
-                                                    'MMM dd, yyyy',
-                                                  ).format(tm.date!),
-                                                ),
-                                                const SizedBox(width: 10),
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 5,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    border: Border.all(
-                                                      color: Colors.white,
+                                              const SizedBox(width: 10),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 5,
                                                     ),
-                                                    borderRadius:
-                                                        const BorderRadius.all(
-                                                          Radius.circular(5),
-                                                        ),
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Colors.white,
                                                   ),
-                                                  child: Text(
-                                                    "${tm.voteAverage}",
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 15),
-                                                SizedBox(
-                                                  height: 25,
-                                                  width: 30,
-                                                  child: MaterialButton(
-                                                    color: Colors.grey,
-                                                    padding:
-                                                        const EdgeInsets.all(0),
-                                                    onPressed: () {},
-                                                    child: const Text(
-                                                      "HD",
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600,
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                        Radius.circular(5),
                                                       ),
+                                                ),
+                                                child: Text(
+                                                  "${tm.voteAverage}",
+                                                ),
+                                              ),
+                                              const SizedBox(width: 15),
+                                              SizedBox(
+                                                height: 25,
+                                                width: 30,
+                                                child: MaterialButton(
+                                                  color: Colors.grey,
+                                                  padding: const EdgeInsets.all(
+                                                    0,
+                                                  ),
+                                                  onPressed: () {},
+                                                  child: const Text(
+                                                    "HD",
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                     ),
                                                   ),
                                                 ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 10),
-                                          ],
-                                        ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 10),
+                                        ],
                                       ),
                                     ),
-                                    // MaterialButton(
-                                    //   elevation: 0,
-                                    //   color: Colors.transparent,
-                                    //   padding: const EdgeInsets.all(0),
-                                    //   onPressed: () {
+                                  ),
+                                  // MaterialButton(
+                                  //   elevation: 0,
+                                  //   color: Colors.transparent,
+                                  //   padding: const EdgeInsets.all(0),
+                                  //   onPressed: () {
 
-                                    //   },
-                                    //   child: Container(
-                                    //     width: size.width,
-                                    //     padding: const EdgeInsets.symmetric(
-                                    //         horizontal: 20, vertical: 15),
-                                    //     child: Column(
-                                    //       crossAxisAlignment:
-                                    //           CrossAxisAlignment.start,
-                                    //       children: [
-                                    //         Text(
-                                    //           cd.name,
-                                    //           maxLines: 2,
-                                    //           overflow: TextOverflow.ellipsis,
-                                    //           style: const TextStyle(
-                                    //             fontWeight: FontWeight.w500,
-                                    //             fontSize: 22,
-                                    //             height: 1.1,
-                                    //           ),
-                                    //         ),
+                                  //   },
+                                  //   child: Container(
+                                  //     width: size.width,
+                                  //     padding: const EdgeInsets.symmetric(
+                                  //         horizontal: 20, vertical: 15),
+                                  //     child: Column(
+                                  //       crossAxisAlignment:
+                                  //           CrossAxisAlignment.start,
+                                  //       children: [
+                                  //         Text(
+                                  //           cd.name,
+                                  //           maxLines: 2,
+                                  //           overflow: TextOverflow.ellipsis,
+                                  //           style: const TextStyle(
+                                  //             fontWeight: FontWeight.w500,
+                                  //             fontSize: 22,
+                                  //             height: 1.1,
+                                  //           ),
+                                  //         ),
 
-                                    //           ],
-                                    //         ),
-                                    //       ],
-                                    //     ),
-                                    //   ),
-                                    // ),
-                                  ],
-                                );
-                              }
-                            }
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.grey,
-                              ),
-                            );
-                          },
-                        ),
-                      },
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const ClampingScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: calculateCrossAxisCount(context),
-                          childAspectRatio: .8,
-                          crossAxisSpacing: 10,
-                          mainAxisExtent: 150,
-                        ),
-                        itemCount: _displayData.length,
-                        itemBuilder: (context, i) {
-                          bool isInFavorite = false;
-                          for (final ClassifiedData fav in favData) {
-                            if (_displayData[i].name == fav.name) {
-                              if (fav.data.length ==
-                                  widget.data[i].data.length) {
-                                print(
-                                  "FAVORITE LENGHT: ${widget.data[i].name} = ${widget.data[i].data.length} - ${fav.data.length}",
-                                );
-                                isInFavorite = true;
-                              }
+                                  //           ],
+                                  //         ),
+                                  //       ],
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                ],
+                              );
                             }
                           }
-
-                          return GestureDetector(
-                            onTap: () async {
-                              String result1 = searchData![i].name.replaceAll(
-                                RegExp(
-                                  r"[(]+[a-zA-Z]+[)]|[0-9]|[|]\s+[0-9]+\s[|]",
-                                ),
-                                '',
-                              );
-                              String result2 = result1.replaceAll(
-                                RegExp(r"[|]+[a-zA-Z]+[|]|[a-zA-Z]+[|] "),
-                                '',
-                              );
-
-                              String result3 = searchData![i].name.replaceAll(
-                                RegExp('[^0-9]'),
-                                '',
-                              );
-
-                              print("TITLE: ${searchData![i]}");
-                              print("SERIES TITLE (result1): $result1");
-                              print("SERIES TITLE (result2): $result2");
-                              print("SERIES TITLE (result3): $result3");
-
-                              // await showModalBottomSheet(
-                              //   context: context,
-                              //   isDismissible: true,
-                              //   backgroundColor: Colors.transparent,
-                              //   isScrollControlled: true,
-                              //   builder: (_) => SeriesDetailsSheet(
-                              //     data: _displayData[i],
-                              //     onLoadVideo: (M3uEntry entry) async {
-                              //       Navigator.of(context).pop(null);
-                              //       // await loadVideo(context, entry);
-                              //       await entry.addToHistory(refId!);
-                              //     },
-                              //   ),
-                              // );
-                              Navigator.push(
-                                context,
-                                PageTransition(
-                                  child: SeriesDetailsPage(
-                                    data: _displayData[i],
-                                    title: result2,
-                                    year: result3,
-                                  ),
-                                  type: PageTransitionType.rightToLeft,
-                                ),
-                              );
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 1.5,
-                              ),
-                              child: Stack(
-                                children: [
-                                  Container(
-                                    margin: const EdgeInsets.only(
-                                      top: 10,
-                                      right: 10,
-                                    ),
-                                    child: LayoutBuilder(
-                                      builder: (context, c) {
-                                        final double w = c.maxWidth;
-                                        final double h = c.maxHeight;
-                                        return ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            5,
-                                          ),
-                                          child: NetworkImageViewer(
-                                            url:
-                                                _displayData[i]
-                                                    .data[0]
-                                                    .attributes['tvg-logo'],
-                                            title:
-                                                _displayData[i].data[0].title,
-                                            width: w,
-                                            height: h,
-                                            fit: BoxFit.cover,
-                                            color: ColorPalette().highlight,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 0,
-                                    right: 0,
-                                    child: SizedBox(
-                                      height: 25,
-                                      width: 25,
-                                      child: FavoriteIconButton(
-                                        onPressedCallback: (
-                                          bool isFavorite,
-                                        ) async {
-                                          if (isFavorite) {
-                                            showDialog(
-                                              barrierDismissible: false,
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                Future.delayed(
-                                                  const Duration(seconds: 3),
-                                                  () {
-                                                    Navigator.of(
-                                                      context,
-                                                    ).pop(true);
-                                                  },
-                                                );
-                                                return Dialog(
-                                                  alignment:
-                                                      Alignment.topCenter,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          10.0,
-                                                        ),
-                                                  ),
-                                                  child: Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 20,
-                                                        ),
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      children: [
-                                                        Text(
-                                                          "Added_to_Favorites"
-                                                              .tr(),
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 16,
-                                                              ),
-                                                        ),
-                                                        IconButton(
-                                                          padding:
-                                                              const EdgeInsets.all(
-                                                                0,
-                                                              ),
-                                                          onPressed: () {
-                                                            Navigator.of(
-                                                              context,
-                                                            ).pop();
-                                                          },
-                                                          icon: const Icon(
-                                                            Icons.close_rounded,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                            );
-                                            for (M3uEntry m3u
-                                                in _displayData[i].data) {
-                                              await m3u.addToFavorites(refId!);
-                                              // widget.onUpdateCallback(m3u);
-                                            }
-                                          } else {
-                                            for (M3uEntry m3u
-                                                in _displayData[i].data) {
-                                              await m3u.removeFromFavorites(
-                                                refId!,
-                                              );
-                                              // widget.onUpdateCallback(m3u);
-                                            }
-                                          }
-                                          await fetchFav();
-                                        },
-                                        initValue: isInFavorite,
-                                        iconSize: 20,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.grey,
                             ),
                           );
                         },
                       ),
-                    ],
-                  ),
+                    },
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const ClampingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: calculateCrossAxisCount(context),
+                        childAspectRatio: .8,
+                        crossAxisSpacing: 10,
+                        mainAxisExtent: 150,
+                      ),
+                      itemCount: _displayData.length,
+                      itemBuilder: (context, i) {
+                        bool isInFavorite = false;
+                        for (final ClassifiedData fav in favData) {
+                          if (_displayData[i].name == fav.name) {
+                            if (fav.data.length == widget.data[i].data.length) {
+                              print(
+                                "FAVORITE LENGHT: ${widget.data[i].name} = ${widget.data[i].data.length} - ${fav.data.length}",
+                              );
+                              isInFavorite = true;
+                            }
+                          }
+                        }
+
+                        return GestureDetector(
+                          onTap: () async {
+                            String result1 = searchData![i].name.replaceAll(
+                              RegExp(
+                                r"[(]+[a-zA-Z]+[)]|[0-9]|[|]\s+[0-9]+\s[|]",
+                              ),
+                              '',
+                            );
+                            String result2 = result1.replaceAll(
+                              RegExp(r"[|]+[a-zA-Z]+[|]|[a-zA-Z]+[|] "),
+                              '',
+                            );
+
+                            String result3 = searchData![i].name.replaceAll(
+                              RegExp('[^0-9]'),
+                              '',
+                            );
+
+                            print("TITLE: ${searchData![i]}");
+                            print("SERIES TITLE (result1): $result1");
+                            print("SERIES TITLE (result2): $result2");
+                            print("SERIES TITLE (result3): $result3");
+
+                            // await showModalBottomSheet(
+                            //   context: context,
+                            //   isDismissible: true,
+                            //   backgroundColor: Colors.transparent,
+                            //   isScrollControlled: true,
+                            //   builder: (_) => SeriesDetailsSheet(
+                            //     data: _displayData[i],
+                            //     onLoadVideo: (M3uEntry entry) async {
+                            //       Navigator.of(context).pop(null);
+                            //       // await loadVideo(context, entry);
+                            //       await entry.addToHistory(refId!);
+                            //     },
+                            //   ),
+                            // );
+                            Navigator.push(
+                              context,
+                              PageTransition(
+                                child: SeriesDetailsPage(
+                                  data: _displayData[i],
+                                  title: result2,
+                                  year: result3,
+                                ),
+                                type: PageTransitionType.rightToLeft,
+                              ),
+                            );
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                            child: Stack(
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(
+                                    top: 10,
+                                    right: 10,
+                                  ),
+                                  child: LayoutBuilder(
+                                    builder: (context, c) {
+                                      final double w = c.maxWidth;
+                                      final double h = c.maxHeight;
+                                      return ClipRRect(
+                                        borderRadius: BorderRadius.circular(5),
+                                        child: NetworkImageViewer(
+                                          url: _displayData[i]
+                                              .data[0]
+                                              .attributes['tvg-logo'],
+                                          title: _displayData[i].name,
+                                          width: w,
+                                          height: h,
+                                          fit: BoxFit.cover,
+                                          color: ColorPalette().highlight,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: SizedBox(
+                                    height: 25,
+                                    width: 25,
+                                    child: FavoriteIconButton(
+                                      onPressedCallback: (bool isFavorite) async {
+                                        if (isFavorite) {
+                                          showDialog(
+                                            barrierDismissible: false,
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              Future.delayed(
+                                                const Duration(seconds: 3),
+                                                () {
+                                                  Navigator.of(
+                                                    context,
+                                                  ).pop(true);
+                                                },
+                                              );
+                                              return Dialog(
+                                                alignment: Alignment.topCenter,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        10.0,
+                                                      ),
+                                                ),
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 20,
+                                                      ),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        "Added_to_Favorites"
+                                                            .tr(),
+                                                        style: const TextStyle(
+                                                          fontSize: 16,
+                                                        ),
+                                                      ),
+                                                      IconButton(
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              0,
+                                                            ),
+                                                        onPressed: () {
+                                                          Navigator.of(
+                                                            context,
+                                                          ).pop();
+                                                        },
+                                                        icon: const Icon(
+                                                          Icons.close_rounded,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                          for (M3uEntry m3u
+                                              in _displayData[i].data) {
+                                            await m3u.addToFavorites(refId!);
+                                            // widget.onUpdateCallback(m3u);
+                                          }
+                                        } else {
+                                          for (M3uEntry m3u
+                                              in _displayData[i].data) {
+                                            await m3u.removeFromFavorites(
+                                              refId!,
+                                            );
+                                            // widget.onUpdateCallback(m3u);
+                                          }
+                                        }
+                                        await fetchFav();
+                                      },
+                                      initValue: isInFavorite,
+                                      iconSize: 20,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
         ),
       ],
     );

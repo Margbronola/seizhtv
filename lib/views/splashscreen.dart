@@ -21,29 +21,34 @@ class _SplashscreenPageState extends State<SplashscreenPage> {
   final DataCacher _cacher = DataCacher.instance;
 
   Future<void> check() async {
-    refId = _cacher.refId;
-    user = _cacher.m3uUser;
-    sourceUrl = _cacher.source;
-    playlistName = _cacher.playlistName;
-    language = _cacher.language;
-    file = _cacher.filePath;
-    password = _cacher.password;
+    setState(() {
+      refId = _cacher.refId;
+      user = _cacher.m3uUser;
+      sourceUrl = _cacher.source;
+      playlistName = _cacher.playlistName;
+      language = _cacher.language;
+      file = _cacher.filePath;
+      password = _cacher.password;
+      userInfo = _cacher.userInfo;
+      server = _cacher.serverInfo;
+    });
 
     print("REF ID: $refId");
     print("USER: $user");
     print("SOURCE URL: $sourceUrl");
     print("PLAYLIST NAME: $playlistName");
-    print("LANGUAGE: $language");
     print("FILE: $file");
-    print("PASSWORD: $password");
+    print("XTREAM USER INFO: $userInfo");
+    print("XTREAM SERVER INFO: $server");
 
-    if (file != null) {
+    if (file != null || userInfo != null) {
       await Navigator.pushReplacementNamed(context, "/landing-page");
       return;
     }
     if (refId == null || user == null) {
       print("DIDI SUMULOD SA LOGIN");
       await Navigator.pushReplacementNamed(context, "/auth");
+      return;
     } else {
       await Navigator.pushReplacement(
         context,

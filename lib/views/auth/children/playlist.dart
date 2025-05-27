@@ -151,106 +151,105 @@ class _PlaylistPageState extends State<PlaylistPage> {
           const SizedBox(height: 5),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 400),
-            child:
-                type == 1
-                    ? Form(
-                      key: kForm,
-                      child: TextFormField(
-                        controller: _url,
-                        cursorColor: Colors.white,
-                        validator: (text) {
-                          if (text == null) {
-                            return "Unprocessable";
-                          } else if (text.isEmpty) {
-                            return "Field is required";
-                          } else if (!text.isValidUrl) {
-                            return "Field must contain a valid url";
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          hintText: "https://example.com",
-                          hintStyle: TextStyle(
-                            color: Colors.white.withOpacity(.5),
-                          ),
-                          border: const OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
-                          ),
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
-                          ),
+            child: type == 1
+                ? Form(
+                    key: kForm,
+                    child: TextFormField(
+                      controller: _url,
+                      cursorColor: Colors.white,
+                      validator: (text) {
+                        if (text == null) {
+                          return "Unprocessable";
+                        } else if (text.isEmpty) {
+                          return "Field is required";
+                        } else if (!text.isValidUrl) {
+                          return "Field must contain a valid url";
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        hintText: "https://example.com",
+                        hintStyle: TextStyle(
+                          color: Colors.white.withOpacity(.5),
+                        ),
+                        border: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white),
+                        ),
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white),
                         ),
                       ),
-                    )
-                    : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: 55,
-                          width: double.infinity,
-                          child: MaterialButton(
-                            onPressed: () async {
-                              print("PICK");
-                              try {
-                                await FilePicker.platform
-                                    .pickFiles(
-                                      allowMultiple: false,
-                                      type: FileType.custom,
-                                      allowedExtensions: ['m3u'],
-                                    )
-                                    .then((value) {
-                                      if (value == null) {
-                                        setState(() {
-                                          file = null;
-                                        });
-                                        return;
-                                      }
+                    ),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 55,
+                        width: double.infinity,
+                        child: MaterialButton(
+                          onPressed: () async {
+                            print("PICK");
+                            try {
+                              await FilePicker.platform
+                                  .pickFiles(
+                                    allowMultiple: false,
+                                    type: FileType.custom,
+                                    allowedExtensions: ['m3u'],
+                                  )
+                                  .then((value) {
+                                    if (value == null) {
                                       setState(() {
-                                        file = File(value.files.single.path!);
-                                        print("FILE SELECTED: $file");
+                                        file = null;
                                       });
+                                      return;
+                                    }
+                                    setState(() {
+                                      file = File(value.files.single.path!);
+                                      print("FILE SELECTED: $file");
                                     });
-                              } catch (e) {
-                                print("FILE PICK ERROR : $e");
-                              }
-                            },
-                            padding: EdgeInsets.zero,
-                            child: DottedBorder(
-                              dashPattern: const [5, 5],
-                              color: Colors.white.withOpacity(.5),
-                              strokeWidth: 1,
-                              child: Center(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SvgPicture.asset(
-                                      "assets/icons/folder.svg",
-                                      height: 20,
-                                      width: 20,
-                                      color: ColorPalette().white,
-                                    ),
-                                    const SizedBox(width: 5),
-                                    Text("Browse".tr()),
-                                  ],
-                                ),
+                                  });
+                            } catch (e) {
+                              print("FILE PICK ERROR : $e");
+                            }
+                          },
+                          padding: EdgeInsets.zero,
+                          child: DottedBorder(
+                            dashPattern: const [5, 5],
+                            color: Colors.white.withOpacity(.5),
+                            strokeWidth: 1,
+                            child: Center(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SvgPicture.asset(
+                                    "assets/icons/folder.svg",
+                                    height: 20,
+                                    width: 20,
+                                    color: ColorPalette().white,
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text("Browse".tr()),
+                                ],
                               ),
                             ),
                           ),
                         ),
-                        if (file != null || widget.data?.isFile == true) ...{
-                          const SizedBox(height: 5),
-                          Text(
-                            widget.data?.isFile == true
-                                ? widget.data!.source.split("/").last
-                                : file!.path.split("/").last,
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(.5),
-                              fontStyle: FontStyle.italic,
-                            ),
+                      ),
+                      if (file != null || widget.data?.isFile == true) ...{
+                        const SizedBox(height: 5),
+                        Text(
+                          widget.data?.isFile == true
+                              ? widget.data!.source.split("/").last
+                              : file!.path.split("/").last,
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(.5),
+                            fontStyle: FontStyle.italic,
                           ),
-                        },
-                      ],
-                    ),
+                        ),
+                      },
+                    ],
+                  ),
           ),
           const SizedBox(height: 40),
           SizedBox(
@@ -275,6 +274,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                                 source: _url.text,
                                 isFile: false,
                                 name: _name.text,
+                                isOnLogin: false,
                               ).toJson(),
                             ]),
                           }, SetOptions(merge: true));
@@ -298,6 +298,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                                 source: file!.path,
                                 isFile: true,
                                 name: _name.text,
+                                isOnLogin: false,
                               ).toJson(),
                             ]),
                           }, SetOptions(merge: true));
@@ -320,6 +321,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                               source: _url.text,
                               isFile: false,
                               name: _name.text,
+                              isOnLogin: false,
                             ).toJson(),
                           ],
                         });
@@ -337,6 +339,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                                 source: file!.path,
                                 isFile: true,
                                 name: _name.text,
+                                isOnLogin: false,
                               ).toJson(),
                             ],
                           });

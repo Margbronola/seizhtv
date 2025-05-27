@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use, use_build_context_synchronously, avoid_print
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously, avoid_print, must_be_immutable
 
 import 'dart:io';
 
@@ -6,7 +6,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart' as cup;
-
+import 'package:page_transition/page_transition.dart';
+import 'package:seizhtv/views/landing_page/xtream_pages/xtream_live.dart';
+import 'package:seizhtv/views/landing_page/xtream_pages/xtream_movie.dart';
 import '../../data_containers/loaded_m3u_data.dart';
 import '../../globals/bottom_bar.dart';
 import '../../globals/data.dart';
@@ -16,15 +18,19 @@ import '../../m3u/categorized_m3u_data.dart';
 import '../../m3u/zm3u_handler.dart';
 import '../../services/movie_api.dart';
 import '../../services/tv_series_api.dart';
+import '../../services/xtream_api.dart';
 import 'children/favorite.dart';
 import 'children/home.dart';
 import 'children/live.dart';
 import 'children/movie.dart';
 import 'children/series.dart';
 import 'firestore_listener.dart';
+import 'source_management.dart';
+import 'xtream_pages/xtream_series.dart';
 
 class MainLandingPage extends StatefulWidget {
-  const MainLandingPage({super.key});
+  MainLandingPage({super.key, this.isXtreamCode = false});
+  final bool isXtreamCode;
 
   @override
   State<MainLandingPage> createState() => _MainLandingPageState();
@@ -69,11 +75,75 @@ class _MainLandingPageState extends State<MainLandingPage> {
         );
       },
     ),
-    const LivePage(),
-    const MoviePage(),
-    const SeriesPage(),
+    userInfo == null ? const LivePage() : XtreamLivePage(),
+    userInfo == null ? const MoviePage() : XtreamMoviePage(),
+    userInfo == null ? const SeriesPage() : XtreamSeriesPage(),
     const FavoritePage(),
   ];
+
+  fetchxtream() async {
+    await XtreamApi()
+        .getLiveStream(
+          baseUrl: "${server!.serverProtocol}://${server!.url}:${server!.port}",
+          username: userInfo!.username,
+          password: userInfo!.password,
+        )
+        .then((value) {
+          if (value!.isNotEmpty) {
+            setState(() {
+              liveXtreamData = value;
+            });
+          }
+        });
+
+    await XtreamApi()
+        .getMovieStream(
+          baseUrl: "${server!.serverProtocol}://${server!.url}:${server!.port}",
+          username: userInfo!.username,
+          password: userInfo!.password,
+        )
+        .then((value) {
+          setState(() {
+            movieXtreamData = value!;
+          });
+        });
+
+    await XtreamApi()
+        .getSeriesStream(
+          baseUrl: "${server!.serverProtocol}://${server!.url}:${server!.port}",
+          username: userInfo!.username,
+          password: userInfo!.password,
+        )
+        .then((value) {
+          setState(() {
+            seriesXtreamData = value!;
+          });
+        });
+
+    await XtreamApi()
+        .getLiveCategoryStream(
+          baseUrl: "${server!.serverProtocol}://${server!.url}:${server!.port}",
+          username: userInfo!.username,
+          password: userInfo!.password,
+        )
+        .then((value) {
+          setState(() {
+            xtreamLiveCategory = value!;
+          });
+        });
+
+    await XtreamApi()
+        .getMovieCategoryStream(
+          baseUrl: "${server!.serverProtocol}://${server!.url}:${server!.port}",
+          username: userInfo!.username,
+          password: userInfo!.password,
+        )
+        .then((value) {
+          setState(() {
+            xtreamMovieCategory = value!;
+          });
+        });
+  }
 
   Future<void> initPlatform() async {
     print("RFID IN INIT PLATFORM LANDING PAGE: $refId");
@@ -82,8 +152,13 @@ class _MainLandingPageState extends State<MainLandingPage> {
     if (mounted) setState(() {});
     print("FILEEEE: $file");
     if (file == null) {
-      await Navigator.pushReplacementNamed(context, "/auth");
-      await _cacher.clearData();
+      await Navigator.pushReplacement(
+        context,
+        PageTransition(
+          child: const SourceManagementPage(),
+          type: PageTransitionType.rightToLeft,
+        ),
+      );
       return;
     }
     try {
@@ -115,7 +190,9 @@ class _MainLandingPageState extends State<MainLandingPage> {
     print("RFID IN INIT STATE LANDING PAGE: $refId");
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await initPlatform();
+      file == null && widget.isXtreamCode == true
+          ? fetchxtream()
+          : initPlatform();
     });
     _firestoreListener.listen();
   }

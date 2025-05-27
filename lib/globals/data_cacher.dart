@@ -3,6 +3,8 @@ import 'package:seizhtv/globals/data.dart';
 import 'package:seizhtv/models/m3u_user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/xtreams_models/server_info.dart';
+import '../models/xtreams_models/user_info.dart';
 import '../services/google_sign_in.dart';
 
 class DataCacher {
@@ -52,6 +54,8 @@ class DataCacher {
       removeSource(),
       removeM3uUser(),
       removePassword(),
+      removeXtreamUser(),
+      removeXtreamServer(),
     ]);
   }
 
@@ -59,6 +63,8 @@ class DataCacher {
       await sharedPreferences.setString("url", url);
   String? get savedUrl => sharedPreferences.getString("url");
   Future<void> removeUrl() async => await sharedPreferences.remove("url");
+
+  ////M3U USER
   Future<bool> removeM3uUser() async =>
       await sharedPreferences.remove("m3u-user");
   Future<void> saveM3uUser(M3uUser user) async {
@@ -79,6 +85,46 @@ class DataCacher {
       photoUrl: d[3].isEmpty ? null : d[3],
       uid: d[0],
     );
+  }
+
+  //// XTREAM USER INFO
+  Future<bool> removeXtreamUser() async =>
+      await sharedPreferences.remove("user-info");
+  Future<void> saveXtreamUser(UserInfoModel userInfo) async {
+    await sharedPreferences.setStringList("user-info", [
+      userInfo.expDate,
+      userInfo.password,
+      userInfo.status,
+      userInfo.username,
+    ]);
+  }
+
+  UserInfoModel? get userInfo {
+    final List<String>? d = sharedPreferences.getStringList("user-info");
+    if (d == null) return null;
+    return UserInfoModel(
+      expDate: d[0],
+      password: d[1],
+      status: d[2],
+      username: d[3],
+    );
+  }
+
+  //// XTREAM SERVER INFO
+  Future<bool> removeXtreamServer() async =>
+      await sharedPreferences.remove("server-info");
+  Future<void> saveXtreamServer(ServerInfoModel serverInfo) async {
+    await sharedPreferences.setStringList("server-info", [
+      serverInfo.port,
+      serverInfo.serverProtocol,
+      serverInfo.url,
+    ]);
+  }
+
+  ServerInfoModel? get serverInfo {
+    final List<String>? d = sharedPreferences.getStringList("server-info");
+    if (d == null) return null;
+    return ServerInfoModel(url: d[2], port: d[0], serverProtocol: d[1]);
   }
 
   /// REFERENCE ID FUNCTIONS

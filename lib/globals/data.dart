@@ -1,4 +1,9 @@
 import '../models/m3u_user.dart';
+import '../models/xtreams_models/category.dart';
+import '../models/xtreams_models/server_info.dart';
+import '../models/xtreams_models/user_info.dart';
+import '../models/xtreams_models/xtream_data.dart';
+import '../models/xtreams_models/xtream_series_data.dart';
 
 String? refId;
 M3uUser? user;
@@ -9,3 +14,11 @@ String? playlistName;
 String? sourceUrl;
 String? language;
 String? password;
+ServerInfoModel? server;
+UserInfoModel? userInfo;
+List<XtreamDataModel> liveXtreamData = [];
+List<XtreamDataModel> movieXtreamData = [];
+List<XtreamSeriesDataModel> seriesXtreamData = [];
+List<CategoryModel> xtreamLiveCategory = [];
+List<CategoryModel> xtreamMovieCategory = [];
+List<CategoryModel> xtreamSeriesCategory = [];

@@ -9,6 +9,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:seizhtv/extension/color.dart';
 import 'package:seizhtv/extension/list.dart';
 import 'package:seizhtv/extension/state.dart';
+import 'package:seizhtv/views/landing_page/xtream_pages/live/xtream_live_list.dart';
 
 import '../../../data_containers/favorites.dart';
 import '../../../data_containers/history.dart';
@@ -22,6 +23,10 @@ import '../../../m3u/categorized_m3u_data.dart';
 import '../../../m3u/classified_data.dart';
 import '../../../m3u/m3u_entry.dart';
 import '../../../m3u/zm3u_handler.dart';
+import '../../../models/xtreams_models/category.dart';
+import '../../../models/xtreams_models/xtream_data.dart';
+import '../../../services/xtream_api.dart';
+import '../../../viewmodel/xtream_category_vm.dart';
 import 'live_children/fav_live.dart';
 import 'live_children/live_category.dart';
 import 'live_children/live_history.dart';
@@ -52,6 +57,8 @@ class _LivePageState extends State<LivePage> {
   List<M3uEntry>? displayData;
   late final ScrollController scrollController;
   late final TextEditingController search;
+  final XtreamCategoryViewModel _catvm = XtreamCategoryViewModel.instance;
+  List<CategoryModel> xtreamCategory = [];
   bool showSearchField = false;
   String dropdownvalue = "";
   bool categorysearch = false;
@@ -78,6 +85,27 @@ class _LivePageState extends State<LivePage> {
       for (final String label in categoryName!) {
         if (label.contains(
           "ALL (${displayData == null ? "" : displayData!.length})",
+        )) {
+          dropdownvalue = label;
+        }
+      }
+      if (mounted) setState(() {});
+    });
+  }
+
+  initXtreamCategory() {
+    _catvm.stream.listen((event) {
+      xtreamCategory = event;
+      categoryName = [
+        "ALL (${liveXtreamData.isEmpty ? "" : liveXtreamData.length})",
+      ];
+      for (final CategoryModel cdata in xtreamCategory!) {
+        categoryName!.add(cdata.name);
+      }
+      categoryName!.sort((a, b) => a.compareTo(b));
+      for (final String label in categoryName!) {
+        if (label.contains(
+          "ALL (${liveXtreamData.isEmpty ? "" : liveXtreamData.length})",
         )) {
           dropdownvalue = label;
         }
@@ -120,11 +148,39 @@ class _LivePageState extends State<LivePage> {
     });
   }
 
+  fetchxtream() async {
+    await XtreamApi()
+        .getLiveStream(
+          baseUrl: "${server!.serverProtocol}://${server!.url}:${server!.port}",
+          username: userInfo!.username,
+          password: userInfo!.password,
+        )
+        .then((value) {
+          setState(() {
+            liveXtreamData = value!;
+          });
+        });
+
+    await XtreamApi()
+        .getLiveCategoryStream(
+          baseUrl: "${server!.serverProtocol}://${server!.url}:${server!.port}",
+          username: userInfo!.username,
+          password: userInfo!.password,
+        )
+        .then((value) {
+          setState(() {
+            xtreamCategory = value!;
+          });
+        });
+  }
+
   @override
   void initState() {
     scrollController = ScrollController();
     search = TextEditingController();
     showSearchField = false;
+    initXtreamCategory();
+    fetchxtream();
     initStream();
     fetchFav();
     fetchHis();
@@ -191,168 +247,53 @@ class _LivePageState extends State<LivePage> {
         ),
         body: Stack(
           children: [
-            displayData == null
+            displayData == null && liveXtreamData.isEmpty
                 ? SeizhTvLoader(
-                  label: Text(
-                    "Retrieving_data".tr(),
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                )
+                    label: Text(
+                      "Retrieving_data".tr(),
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  )
                 : Column(
-                  children: [
-                    const SizedBox(height: 10),
-                    Container(
-                      height: 50,
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            ind == 0
-                                ? Container(
-                                  width: 270,
-                                  height: 50,
-                                  padding: const EdgeInsets.all(10),
-                                  alignment: Alignment.centerLeft,
-                                  decoration: BoxDecoration(
-                                    color:
-                                        ind == 0
+                    children: [
+                      const SizedBox(height: 10),
+                      Container(
+                        height: 50,
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              ind == 0
+                                  ? Container(
+                                      width: 270,
+                                      height: 50,
+                                      padding: const EdgeInsets.all(10),
+                                      alignment: Alignment.centerLeft,
+                                      decoration: BoxDecoration(
+                                        color: ind == 0
                                             ? ColorPalette().topColor
                                             : ColorPalette().highlight,
-                                    borderRadius: BorderRadius.circular(5),
-                                    border: Border.all(
-                                      color:
-                                          ind == 0
+                                        borderRadius: BorderRadius.circular(5),
+                                        border: Border.all(
+                                          color: ind == 0
                                               ? ColorPalette().topColor
                                               : Colors.grey,
-                                    ),
-                                  ),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        prevIndex = ind!;
-                                        ind = 0;
-                                        showSearchField = false;
-                                        print("CURRENT INDEX $ind");
-                                        print("PREV INDEX $prevIndex");
-                                      });
-                                    },
-                                    child:
-                                        ind == 0 && prevIndex != 0
-                                            ? DropdownButton(
-                                              elevation: 0,
-                                              isExpanded: true,
-                                              padding: const EdgeInsets.all(0),
-                                              underline: Container(),
-                                              onTap: () {
-                                                setState(() {
-                                                  selected = true;
-                                                  ind = 0;
-                                                });
-                                              },
-                                              items:
-                                                  categoryName!.map((value) {
-                                                    return DropdownMenuItem(
-                                                      value: value,
-                                                      child: Text(
-                                                        value,
-                                                        maxLines: 1,
-                                                        overflow:
-                                                            TextOverflow
-                                                                .ellipsis,
-                                                      ),
-                                                    );
-                                                  }).toList(),
-                                              value:
-                                                  dropdownvalue == ""
-                                                      ? categoryName == []
-                                                          ? ""
-                                                          : categoryName![3]
-                                                      : dropdownvalue,
-                                              style: const TextStyle(
-                                                fontFamily: "Poppins",
-                                              ),
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  dropdownvalue = value!;
-                                                  String result1 = dropdownvalue
-                                                      .replaceAll(
-                                                        RegExp(
-                                                          r"[(]+[0-9]+[)]",
-                                                        ),
-                                                        '',
-                                                      );
-
-                                                  data =
-                                                      sdata
-                                                          .where(
-                                                            (element) => element
-                                                                .name
-                                                                .contains(
-                                                                  result1
-                                                                      .trimRight(),
-                                                                ),
-                                                          )
-                                                          .expand(
-                                                            (element) =>
-                                                                element.data,
-                                                          )
-                                                          .toList()
-                                                        ..sort(
-                                                          (a, b) =>
-                                                              a.title.compareTo(
-                                                                b.title,
-                                                              ),
-                                                        );
-                                                  categorydata = data;
-                                                  showSearchField = false;
-                                                  categorysearch = false;
-                                                });
-                                              },
-                                            )
-                                            : Text(
-                                              dropdownvalue,
-                                              // maxLines: 1,
-                                              // overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                fontFamily: "Poppins",
-                                              ),
-                                            ),
-                                  ),
-                                )
-                                : GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      prevIndex = ind!;
-                                      ind = 0;
-                                      showSearchField = false;
-                                      print("CURRENT INDEX $ind");
-                                      print("PREV INDEX $prevIndex");
-                                    });
-                                  },
-                                  child: Container(
-                                    // width: 270,
-                                    height: 50,
-                                    padding: const EdgeInsets.all(10),
-                                    alignment: Alignment.centerLeft,
-                                    decoration: BoxDecoration(
-                                      color:
-                                          ind == 0
-                                              ? ColorPalette().topColor
-                                              : ColorPalette().highlight,
-                                      borderRadius: BorderRadius.circular(5),
-                                      border: Border.all(
-                                        color:
-                                            ind == 0
-                                                ? ColorPalette().topColor
-                                                : Colors.grey,
+                                        ),
                                       ),
-                                    ),
-                                    child:
-                                        ind == 0 && prevIndex != 0
-                                            ? Expanded(
-                                              child: DropdownButton(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            prevIndex = ind!;
+                                            ind = 0;
+                                            showSearchField = false;
+                                            print("CURRENT INDEX $ind");
+                                            print("PREV INDEX $prevIndex");
+                                          });
+                                        },
+                                        child: ind == 0 && prevIndex != 0
+                                            ? DropdownButton(
                                                 elevation: 0,
                                                 isExpanded: true,
                                                 padding: const EdgeInsets.all(
@@ -365,24 +306,24 @@ class _LivePageState extends State<LivePage> {
                                                     ind = 0;
                                                   });
                                                 },
-                                                items:
-                                                    categoryName!.map((value) {
-                                                      return DropdownMenuItem(
-                                                        value: value,
-                                                        child: Text(
-                                                          value,
-                                                          // maxLines: 1,
-                                                          // overflow:
-                                                          //     TextOverflow.ellipsis,
-                                                        ),
-                                                      );
-                                                    }).toList(),
-                                                value:
-                                                    dropdownvalue == ""
-                                                        ? categoryName == []
-                                                            ? ""
-                                                            : categoryName![3]
-                                                        : dropdownvalue,
+                                                items: categoryName!.map((
+                                                  value,
+                                                ) {
+                                                  return DropdownMenuItem(
+                                                    value: value,
+                                                    child: Text(
+                                                      value,
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                                value: dropdownvalue == ""
+                                                    ? categoryName == []
+                                                          ? ""
+                                                          : categoryName![3]
+                                                    : dropdownvalue,
                                                 style: const TextStyle(
                                                   fontFamily: "Poppins",
                                                 ),
@@ -425,249 +366,376 @@ class _LivePageState extends State<LivePage> {
                                                     categorysearch = false;
                                                   });
                                                 },
-                                              ),
-                                            )
+                                              )
                                             : Text(
-                                              dropdownvalue,
-                                              style: const TextStyle(
-                                                fontFamily: "Poppins",
+                                                dropdownvalue,
+                                                // maxLines: 1,
+                                                // overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontFamily: "Poppins",
+                                                ),
                                               ),
-                                            ),
-                                  ),
-                                ),
-                            const SizedBox(width: 10),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  prevIndex = ind!;
-                                  ind = 1;
-                                  showSearchField = false;
-                                  print("CURRENT INDEX $ind");
-                                  print("PREV INDEX $prevIndex");
-                                });
-                              },
-                              child: Container(
-                                height: 50,
-                                padding: const EdgeInsets.all(10),
-                                alignment: Alignment.centerLeft,
-                                decoration: BoxDecoration(
-                                  color:
-                                      ind == 1
-                                          ? ColorPalette().topColor
-                                          : ColorPalette().highlight,
-                                  borderRadius: BorderRadius.circular(5),
-                                  border: Border.all(
-                                    color:
-                                        ind == 1
-                                            ? ColorPalette().topColor
-                                            : Colors.grey,
-                                  ),
-                                ),
-                                child: Text(
-                                  "${"favorites".tr().toUpperCase()} (${favData.length})",
-                                  style: const TextStyle(fontFamily: "Poppins"),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  prevIndex = ind!;
-                                  ind = 2;
-                                  showSearchField = false;
-                                  print("CURRENT INDEX $ind");
-                                  print("PREV INDEX $prevIndex");
-                                });
-                              },
-                              child: Container(
-                                height: 50,
-                                padding: const EdgeInsets.all(10),
-                                alignment: Alignment.centerLeft,
-                                decoration: BoxDecoration(
-                                  color:
-                                      ind == 2
-                                          ? ColorPalette().topColor
-                                          : ColorPalette().highlight,
-                                  borderRadius: BorderRadius.circular(5),
-                                  border: Border.all(
-                                    color:
-                                        ind == 2
-                                            ? ColorPalette().topColor
-                                            : Colors.grey,
-                                  ),
-                                ),
-                                child: Text(
-                                  "${"Channels_History".tr().toUpperCase()} (${hisData.length})",
-                                  style: const TextStyle(fontFamily: "Poppins"),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    categorysearch == false
-                        ? AnimatedPadding(
-                          duration: const Duration(milliseconds: 400),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: showSearchField ? 20 : 0,
-                          ),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 500),
-                            height: showSearchField ? 50 : 0,
-                            width: double.maxFinite,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    height: 50,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: ColorPalette().highlight,
-                                      borderRadius: BorderRadius.circular(10),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: ColorPalette().highlight
-                                              .darken()
-                                              .withOpacity(1),
-                                          offset: const Offset(2, 2),
-                                          blurRadius: 2,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        SvgPicture.asset(
-                                          "assets/icons/search.svg",
-                                          height: 20,
-                                          width: 20,
-                                          color: ColorPalette().white,
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: AnimatedSwitcher(
-                                            duration: const Duration(
-                                              milliseconds: 300,
-                                            ),
-                                            child:
-                                                showSearchField
-                                                    ? TextField(
-                                                      onChanged: (text) {
-                                                        if (_kList
-                                                                .currentState !=
-                                                            null) {
-                                                          _kList.currentState!
-                                                              .search(text);
-                                                        }
-                                                        // else if (_catPage
-                                                        //         .currentState !=
-                                                        //     null) {
-                                                        //   _catPage
-                                                        //       .currentState!
-                                                        //       .search(text);
-                                                        // }
-                                                        else if (_favPage
-                                                                .currentState !=
-                                                            null) {
-                                                          _favPage.currentState!
-                                                              .search(text);
-                                                        } else if (_hisPage
-                                                                .currentState !=
-                                                            null) {
-                                                          _hisPage.currentState!
-                                                              .search(text);
-                                                        }
-                                                        if (mounted) {
-                                                          setState(() {});
-                                                        }
-                                                      },
-                                                      cursorColor:
-                                                          ColorPalette().orange,
-                                                      controller: search,
-                                                      decoration:
-                                                          InputDecoration(
-                                                            hintText:
-                                                                "Search".tr(),
-                                                          ),
-                                                    )
-                                                    : Container(),
+                                      ),
+                                    )
+                                  : GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          prevIndex = ind!;
+                                          ind = 0;
+                                          showSearchField = false;
+                                          print("CURRENT INDEX $ind");
+                                          print("PREV INDEX $prevIndex");
+                                        });
+                                      },
+                                      child: Container(
+                                        // width: 270,
+                                        height: 50,
+                                        padding: const EdgeInsets.all(10),
+                                        alignment: Alignment.centerLeft,
+                                        decoration: BoxDecoration(
+                                          color: ind == 0
+                                              ? ColorPalette().topColor
+                                              : ColorPalette().highlight,
+                                          borderRadius: BorderRadius.circular(
+                                            5,
+                                          ),
+                                          border: Border.all(
+                                            color: ind == 0
+                                                ? ColorPalette().topColor
+                                                : Colors.grey,
                                           ),
                                         ),
-                                      ],
+                                        child: ind == 0 && prevIndex != 0
+                                            ? Expanded(
+                                                child: DropdownButton(
+                                                  elevation: 0,
+                                                  isExpanded: true,
+                                                  padding: const EdgeInsets.all(
+                                                    0,
+                                                  ),
+                                                  underline: Container(),
+                                                  onTap: () {
+                                                    setState(() {
+                                                      selected = true;
+                                                      ind = 0;
+                                                    });
+                                                  },
+                                                  items: categoryName!.map((
+                                                    value,
+                                                  ) {
+                                                    return DropdownMenuItem(
+                                                      value: value,
+                                                      child: Text(
+                                                        value,
+                                                        // maxLines: 1,
+                                                        // overflow:
+                                                        //     TextOverflow.ellipsis,
+                                                      ),
+                                                    );
+                                                  }).toList(),
+                                                  value: dropdownvalue == ""
+                                                      ? categoryName == []
+                                                            ? ""
+                                                            : categoryName![3]
+                                                      : dropdownvalue,
+                                                  style: const TextStyle(
+                                                    fontFamily: "Poppins",
+                                                  ),
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      dropdownvalue = value!;
+                                                      String
+                                                      result1 = dropdownvalue
+                                                          .replaceAll(
+                                                            RegExp(
+                                                              r"[(]+[0-9]+[)]",
+                                                            ),
+                                                            '',
+                                                          );
+
+                                                      data =
+                                                          sdata
+                                                              .where(
+                                                                (
+                                                                  element,
+                                                                ) => element
+                                                                    .name
+                                                                    .contains(
+                                                                      result1
+                                                                          .trimRight(),
+                                                                    ),
+                                                              )
+                                                              .expand(
+                                                                (element) =>
+                                                                    element
+                                                                        .data,
+                                                              )
+                                                              .toList()
+                                                            ..sort(
+                                                              (a, b) => a.title
+                                                                  .compareTo(
+                                                                    b.title,
+                                                                  ),
+                                                            );
+                                                      categorydata = data;
+                                                      showSearchField = false;
+                                                      categorysearch = false;
+                                                    });
+                                                  },
+                                                ),
+                                              )
+                                            : Text(
+                                                dropdownvalue,
+                                                style: const TextStyle(
+                                                  fontFamily: "Poppins",
+                                                ),
+                                              ),
+                                      ),
+                                    ),
+                              const SizedBox(width: 10),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    prevIndex = ind!;
+                                    ind = 1;
+                                    showSearchField = false;
+                                    print("CURRENT INDEX $ind");
+                                    print("PREV INDEX $prevIndex");
+                                  });
+                                },
+                                child: Container(
+                                  height: 50,
+                                  padding: const EdgeInsets.all(10),
+                                  alignment: Alignment.centerLeft,
+                                  decoration: BoxDecoration(
+                                    color: ind == 1
+                                        ? ColorPalette().topColor
+                                        : ColorPalette().highlight,
+                                    borderRadius: BorderRadius.circular(5),
+                                    border: Border.all(
+                                      color: ind == 1
+                                          ? ColorPalette().topColor
+                                          : Colors.grey,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    "${"favorites".tr().toUpperCase()} (${favData.length})",
+                                    style: const TextStyle(
+                                      fontFamily: "Poppins",
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 10),
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _kList.currentState?.search("");
-                                      // _catPage.currentState?.search("");
-                                      _favPage.currentState?.search("");
-                                      _hisPage.currentState?.search("");
-                                      search.text = "";
-                                      showSearchField = !showSearchField;
-                                    });
-                                  },
+                              ),
+                              const SizedBox(width: 10),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    prevIndex = ind!;
+                                    ind = 2;
+                                    showSearchField = false;
+                                    print("CURRENT INDEX $ind");
+                                    print("PREV INDEX $prevIndex");
+                                  });
+                                },
+                                child: Container(
+                                  height: 50,
+                                  padding: const EdgeInsets.all(10),
+                                  alignment: Alignment.centerLeft,
+                                  decoration: BoxDecoration(
+                                    color: ind == 2
+                                        ? ColorPalette().topColor
+                                        : ColorPalette().highlight,
+                                    borderRadius: BorderRadius.circular(5),
+                                    border: Border.all(
+                                      color: ind == 2
+                                          ? ColorPalette().topColor
+                                          : Colors.grey,
+                                    ),
+                                  ),
                                   child: Text(
-                                    "Cancel".tr(),
-                                    style: const TextStyle(color: Colors.white),
+                                    "${"Channels_History".tr().toUpperCase()} (${hisData.length})",
+                                    style: const TextStyle(
+                                      fontFamily: "Poppins",
+                                    ),
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(width: 10),
+                            ],
                           ),
-                        )
-                        : const SizedBox(),
-                    if (showSearchField) ...{const SizedBox(height: 20)},
-                    Expanded(
-                      child: Scrollbar(
-                        controller: scrollController,
-                        child:
-                            ind == 0
-                                ? dropdownvalue.contains("ALL") ||
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      categorysearch == false
+                          ? AnimatedPadding(
+                              duration: const Duration(milliseconds: 400),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: showSearchField ? 20 : 0,
+                              ),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 500),
+                                height: showSearchField ? 50 : 0,
+                                width: double.maxFinite,
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Container(
+                                        height: 50,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: ColorPalette().highlight,
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: ColorPalette().highlight
+                                                  .darken()
+                                                  .withOpacity(1),
+                                              offset: const Offset(2, 2),
+                                              blurRadius: 2,
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            SvgPicture.asset(
+                                              "assets/icons/search.svg",
+                                              height: 20,
+                                              width: 20,
+                                              color: ColorPalette().white,
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: AnimatedSwitcher(
+                                                duration: const Duration(
+                                                  milliseconds: 300,
+                                                ),
+                                                child: showSearchField
+                                                    ? TextField(
+                                                        onChanged: (text) {
+                                                          if (_kList
+                                                                  .currentState !=
+                                                              null) {
+                                                            _kList.currentState!
+                                                                .search(text);
+                                                          }
+                                                          // else if (_catPage
+                                                          //         .currentState !=
+                                                          //     null) {
+                                                          //   _catPage
+                                                          //       .currentState!
+                                                          //       .search(text);
+                                                          // }
+                                                          else if (_favPage
+                                                                  .currentState !=
+                                                              null) {
+                                                            _favPage
+                                                                .currentState!
+                                                                .search(text);
+                                                          } else if (_hisPage
+                                                                  .currentState !=
+                                                              null) {
+                                                            _hisPage
+                                                                .currentState!
+                                                                .search(text);
+                                                          }
+                                                          if (mounted) {
+                                                            setState(() {});
+                                                          }
+                                                        },
+                                                        cursorColor:
+                                                            ColorPalette()
+                                                                .orange,
+                                                        controller: search,
+                                                        decoration:
+                                                            InputDecoration(
+                                                              hintText: "Search"
+                                                                  .tr(),
+                                                            ),
+                                                      )
+                                                    : Container(),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _kList.currentState?.search("");
+                                          // _catPage.currentState?.search("");
+                                          _favPage.currentState?.search("");
+                                          _hisPage.currentState?.search("");
+                                          search.text = "";
+                                          showSearchField = !showSearchField;
+                                        });
+                                      },
+                                      child: Text(
+                                        "Cancel".tr(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : const SizedBox(),
+                      if (showSearchField) ...{const SizedBox(height: 20)},
+                      Expanded(
+                        child: Scrollbar(
+                          controller: scrollController,
+                          child: ind == 0
+                              ? dropdownvalue.contains("ALL") ||
                                         dropdownvalue == ""
                                     ? LiveListPage(
-                                      key: _kList,
-                                      data: displayData!,
-                                      controller: scrollController,
-                                      onPressed: (M3uEntry entry) async {
-                                        entry.addToHistory(refId!);
-                                        await VideoLoader().loadVideo(
-                                          context,
-                                          entry,
-                                        );
-                                      },
-                                      onUpdateCallback: (item) {
-                                        setState(() {
-                                          print("Valueee: $item");
-                                        });
-                                      },
-                                    )
+                                        key: _kList,
+                                        data: displayData!,
+                                        controller: scrollController,
+                                        onPressed: (M3uEntry entry) async {
+                                          entry.addToHistory(refId!);
+                                          await VideoLoader().loadVideo(
+                                            context,
+                                            link: entry.link,
+                                            title: entry.title,
+                                            type: "",
+                                            image: entry.attributes['tvg-logo'],
+                                          );
+                                        },
+                                        onUpdateCallback: (item) {
+                                          setState(() {
+                                            print("Valueee: $item");
+                                          });
+                                        },
+                                      )
                                     : LiveCategoryPage(
-                                      key: _catPage,
-                                      categorydata: categorydata,
-                                      showsearchfield: categorysearch,
-                                      onUpdateCallback: (item) {
-                                        setState(() {
-                                          print("Valueee: $item");
-                                        });
-                                      },
-                                    )
-                                : ind == 1
-                                ? FavLivePage(
+                                        key: _catPage,
+                                        categorydata: categorydata,
+                                        showsearchfield: categorysearch,
+                                        onUpdateCallback: (item) {
+                                          setState(() {
+                                            print("Valueee: $item");
+                                          });
+                                        },
+                                      )
+                              : ind == 1
+                              ? FavLivePage(
                                   key: _favPage,
                                   data: favData,
                                   onPressed: (M3uEntry entry) async {
                                     entry.addToHistory(refId!);
                                     await VideoLoader().loadVideo(
                                       context,
-                                      entry,
+                                      link: entry.link,
+                                      title: entry.title,
+                                      type: "",
+                                      image: entry.attributes['tvg-logo'],
                                     );
                                   },
                                   onUpdateCallback: (item) {
@@ -676,21 +744,24 @@ class _LivePageState extends State<LivePage> {
                                     });
                                   },
                                 )
-                                : LiveHistoryPage(
+                              : LiveHistoryPage(
                                   key: _hisPage,
                                   data: hisData,
                                   onPressed: (M3uEntry entry) async {
                                     entry.addToHistory(refId!);
                                     await VideoLoader().loadVideo(
                                       context,
-                                      entry,
+                                      link: entry.link,
+                                      title: entry.title,
+                                      type: "",
+                                      image: entry.attributes['tvg-logo'],
                                     );
                                   },
                                 ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
             update == true ? UIAdditional().loader() : Container(),
           ],
         ),

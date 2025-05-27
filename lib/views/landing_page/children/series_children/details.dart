@@ -52,6 +52,7 @@ class _SeriesDetailsPageState extends State<SeriesDetailsPage>
     fetchFav();
     print("TITLE: ${widget.title}");
     print("YEAR RELEASE: ${widget.year}");
+    print("SERIES DATA: ${widget.data.data.length}");
     TVSeriesAPI().searchTV(title: widget.title, year: widget.year).then((
       value,
     ) {
@@ -122,17 +123,16 @@ class _SeriesDetailsPageState extends State<SeriesDetailsPage>
                     child: CachedNetworkImage(
                       fit: BoxFit.cover,
                       imageUrl: "${Network.imageUrl}${result.backdropPath}",
-                      placeholder:
-                          (context, url) => UIAdditional().shimmerLoading(
+                      placeholder: (context, url) =>
+                          UIAdditional().shimmerLoading(
                             ColorPalette().highlight,
                             200,
                             width: double.infinity,
                           ),
-                      errorWidget:
-                          (context, url, error) => Image.asset(
-                            "${widget.data.data[0].attributes['tvg-logo']}",
-                            fit: BoxFit.fitHeight,
-                          ),
+                      errorWidget: (context, url, error) => Image.asset(
+                        "${widget.data.data[0].attributes['tvg-logo']}",
+                        fit: BoxFit.fitHeight,
+                      ),
                     ),
                   ),
                   Container(
@@ -233,29 +233,24 @@ class _SeriesDetailsPageState extends State<SeriesDetailsPage>
                                 elevation: 0,
                                 height: 40,
                                 child: Center(
-                                  child:
-                                      !isFavorite
-                                          ? Text(
-                                            "Add_to_favorites".tr(),
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              color: Colors.white.withOpacity(
-                                                .7,
-                                              ),
-                                            ),
-                                          )
-                                          : Text(
-                                            "Favorites".tr(),
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w800,
-                                              color: Colors.white.withOpacity(
-                                                .7,
-                                              ),
-                                            ),
+                                  child: !isFavorite
+                                      ? Text(
+                                          "Add_to_favorites".tr(),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.white.withOpacity(.7),
                                           ),
+                                        )
+                                      : Text(
+                                          "Favorites".tr(),
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white.withOpacity(.7),
+                                          ),
+                                        ),
                                 ),
                               ),
                             ),
@@ -397,7 +392,7 @@ class _SeriesDetailsPageState extends State<SeriesDetailsPage>
                   height: 200,
                   width: double.infinity,
                   child: NetworkImageViewer(
-                    url: "${widget.data.data[0].attributes['tvg-logo']}",
+                    url: widget.data.data[0].attributes['tvg-logo'],
                     title: "false",
                     width: 85,
                     height: 60,
@@ -503,25 +498,24 @@ class _SeriesDetailsPageState extends State<SeriesDetailsPage>
                               elevation: 0,
                               height: 40,
                               child: Center(
-                                child:
-                                    !isFavorite
-                                        ? Text(
-                                          "Add_to_favorites".tr(),
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: Colors.white.withOpacity(.7),
-                                          ),
-                                        )
-                                        : Text(
-                                          "Favorites".tr(),
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w800,
-                                            color: Colors.white.withOpacity(.7),
-                                          ),
+                                child: !isFavorite
+                                    ? Text(
+                                        "Add_to_favorites".tr(),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.white.withOpacity(.7),
                                         ),
+                                      )
+                                    : Text(
+                                        "Favorites".tr(),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.white.withOpacity(.7),
+                                        ),
+                                      ),
                               ),
                             ),
                           ),
