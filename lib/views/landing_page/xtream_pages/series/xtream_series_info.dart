@@ -25,7 +25,7 @@ class _XtreamSeriesInfoPageState extends State<XtreamSeriesInfoPage> {
   @override
   void initState() {
     TVSeriesAPI()
-        .searchTV(title: widget.data.title, year: widget.data.year)
+        .searchTV(title: widget.data.title ?? "", year: widget.data.year)
         .then((value) {
           print("SEARCH TV: $value");
           TVSeriesAPI().tvSeriesCast(value!);

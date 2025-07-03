@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -76,8 +78,8 @@ class _DetailsPageState extends State<DetailsPage> {
                       widget.movie != null
                           ? ""
                           : widget.series!.createdby!
-                              .map((it) => it.name)
-                              .join(' / '),
+                                .map((it) => it.name)
+                                .join(' / '),
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w500,
@@ -138,11 +140,11 @@ class _DetailsPageState extends State<DetailsPage> {
                     child: Text(
                       widget.movie == null
                           ? widget.series!.genres!
-                              .map((it) => it.name)
-                              .join(' / ')
+                                .map((it) => it.name)
+                                .join(' / ')
                           : widget.movie!.genres!
-                              .map((it) => it.name)
-                              .join(' / '),
+                                .map((it) => it.name)
+                                .join(' / '),
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w500,
@@ -199,15 +201,14 @@ class _DetailsPageState extends State<DetailsPage> {
                                       fit: BoxFit.cover,
                                       imageUrl:
                                           "${Network.imageUrl}${cast.profilePath}",
-                                      placeholder:
-                                          (context, url) =>
-                                              UIAdditional().shimmerLoading(
-                                                ColorPalette().highlight,
-                                                80,
-                                                width: double.infinity,
-                                              ),
-                                      errorWidget:
-                                          (context, url, error) => Image.asset(
+                                      placeholder: (context, url) =>
+                                          UIAdditional().shimmerLoading(
+                                            ColorPalette().highlight,
+                                            80,
+                                            width: double.infinity,
+                                          ),
+                                      errorWidget: (context, url, error) =>
+                                          Image.asset(
                                             "assets/images/logo.png",
                                             fit: BoxFit.cover,
                                           ),
@@ -248,6 +249,8 @@ class _DetailsPageState extends State<DetailsPage> {
                 },
               ),
             ),
+
+            Container(height: 20),
           ],
         ),
       ),

@@ -45,7 +45,7 @@ class _SplashscreenPageState extends State<SplashscreenPage> {
       await Navigator.pushReplacementNamed(context, "/landing-page");
       return;
     }
-    if (refId == null || user == null) {
+    if (refId == null && user == null) {
       print("DIDI SUMULOD SA LOGIN");
       await Navigator.pushReplacementNamed(context, "/auth");
       return;

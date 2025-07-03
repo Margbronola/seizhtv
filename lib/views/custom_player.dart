@@ -33,7 +33,7 @@ class _CustomPlayerState extends State<CustomPlayer> {
   @override
   void initState() {
     super.initState();
-
+    print("VIDEO PLAYERRRRR: ${widget.link}");
     _videoPlayerController = VlcPlayerController.network(widget.link);
   }
 
@@ -45,10 +45,13 @@ class _CustomPlayerState extends State<CustomPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: VlcPlayerWithControls(
-        controller: _videoPlayerController,
-        showControls: true,
+    return Container(
+      color: Colors.black,
+      child: Center(
+        child: VlcPlayerWithControls(
+          controller: _videoPlayerController,
+          showControls: true,
+        ),
       ),
     );
   }

@@ -78,7 +78,6 @@ class _VideoplayerState extends State<Videoplayer> {
       bottomActions: [
         CurrentPosition(),
         ProgressBar(isExpanded: true),
-        // FullScreenButton(),
       ],
       onReady: () {
         _isPlayerReady = true;

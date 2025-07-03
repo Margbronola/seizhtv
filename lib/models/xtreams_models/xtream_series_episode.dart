@@ -55,7 +55,7 @@ class EpisodesModel {
       title: json['title'],
       info: Info.fromJson(json['info']),
       season: json['season'],
-      episodeNum: json['episode_num'],
+      episodeNum: json['episode_num'].toString(),
     );
   }
 }

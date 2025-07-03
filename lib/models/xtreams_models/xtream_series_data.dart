@@ -1,9 +1,9 @@
 class XtreamSeriesDataModel {
   final int num;
   final String title;
-  final String type;
+  final String? type;
   final int? seriesId;
-  final String cover;
+  final String? cover;
   final String? plot;
   final String? cast;
   final String? director;
@@ -36,7 +36,7 @@ class XtreamSeriesDataModel {
   factory XtreamSeriesDataModel.fromJson(Map<String, dynamic> json) {
     return XtreamSeriesDataModel(
       cover: json['cover'],
-      title: json['title'],
+      title: json['name'],
       num: json['num'],
       seriesId: json['series_id'],
       type: json['stream_type'],

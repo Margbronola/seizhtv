@@ -3,6 +3,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:seizhtv/extension/m3u_entry.dart';
 import 'package:seizhtv/extension/state.dart';
 import 'package:seizhtv/models/xtreams_models/xtream_data.dart';
@@ -17,6 +18,7 @@ import '../../../../models/movie_details.dart';
 import '../../../../services/movie_api.dart';
 import '../../../../services/xtream_api.dart';
 import '../../../../viewmodel/moviedetails.dart';
+import '../../../custom_player.dart';
 import '../../children/details.dart';
 import '../../children/movie_children/details.dart';
 
@@ -181,7 +183,7 @@ class _XtreamMovieDetailsPageState extends State<XtreamMovieDetailsPage> {
                                 await VideoLoader().loadVideo(
                                   context,
                                   link: "${widget.data.streamId}",
-                                  title: widget.data.name ?? "",
+                                  title: "${widget.data.name}",
                                   type: widget.data.type,
                                   image: widget.data.icon,
                                   fromXtream: true,
@@ -330,7 +332,6 @@ class _XtreamMovieDetailsPageState extends State<XtreamMovieDetailsPage> {
                     children: [
                       Text(
                         widget.data.name ?? "",
-                        // widget.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -442,78 +443,6 @@ class _XtreamMovieDetailsPageState extends State<XtreamMovieDetailsPage> {
                       const SizedBox(height: 10),
                       Text("No_data_available".tr()),
                       const SizedBox(height: 50),
-                      // Row(
-                      //   children: [
-                      //     RichText(
-                      //       text: TextSpan(
-                      //         text: "Directors".tr(),
-                      //         style: const TextStyle(
-                      //           fontSize: 18,
-                      //           fontWeight: FontWeight.w500,
-                      //           fontFamily: "Poppins",
-                      //         ),
-                      //         children: const [
-                      //           TextSpan(text: " :"),
-                      //         ],
-                      //       ),
-                      //     ),
-                      //     const SizedBox(width: 20),
-                      //     const Expanded(
-                      //         child: SizedBox(
-                      //             width: double.infinity, child: Text(""))),
-                      //   ],
-                      // ),
-                      // const SizedBox(height: 20),
-                      // Row(
-                      //   children: [
-                      //     RichText(
-                      //       text: TextSpan(
-                      //         text: "Release_Date".tr(),
-                      //         style: const TextStyle(
-                      //           fontSize: 18,
-                      //           fontWeight: FontWeight.w500,
-                      //           fontFamily: "Poppins",
-                      //         ),
-                      //         children: const [
-                      //           TextSpan(text: " :"),
-                      //         ],
-                      //       ),
-                      //     ),
-                      //     const SizedBox(width: 15),
-                      //     const Expanded(
-                      //       child: Text(
-                      //         "",
-                      //         style: TextStyle(
-                      //           fontSize: 18,
-                      //           fontWeight: FontWeight.w500,
-                      //         ),
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
-                      // const SizedBox(height: 20),
-                      // RichText(
-                      //   text: TextSpan(
-                      //     text: "Genre".tr(),
-                      //     style: const TextStyle(
-                      //       fontSize: 18,
-                      //       fontWeight: FontWeight.w500,
-                      //       fontFamily: "Poppins",
-                      //     ),
-                      //     children: const [
-                      //       TextSpan(text: " :"),
-                      //     ],
-                      //   ),
-                      // ),
-                      // const SizedBox(height: 20),
-                      // Text(
-                      //   "Cast".tr(),
-                      //   style: const TextStyle(
-                      //     fontSize: 18,
-                      //     fontWeight: FontWeight.w500,
-                      //   ),
-                      // ),
-                      // const SizedBox(height: 10),
                       Center(
                         child: Text(
                           "No_data_available".tr(),

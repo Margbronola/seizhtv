@@ -190,7 +190,7 @@ class _LoadXtreamCodePageState extends State<LoadXtreamCodePage> {
                             Navigator.pushReplacement(
                               context,
                               PageTransition(
-                                child: MainLandingPage(isXtreamCode: true),
+                                child: MainLandingPage(),
                                 type: PageTransitionType.rightToLeft,
                               ),
                             );

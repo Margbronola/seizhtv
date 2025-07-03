@@ -29,8 +29,7 @@ import 'source_management.dart';
 import 'xtream_pages/xtream_series.dart';
 
 class MainLandingPage extends StatefulWidget {
-  MainLandingPage({super.key, this.isXtreamCode = false});
-  final bool isXtreamCode;
+  MainLandingPage({super.key});
 
   @override
   State<MainLandingPage> createState() => _MainLandingPageState();
@@ -190,9 +189,7 @@ class _MainLandingPageState extends State<MainLandingPage> {
     print("RFID IN INIT STATE LANDING PAGE: $refId");
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      file == null && widget.isXtreamCode == true
-          ? fetchxtream()
-          : initPlatform();
+      file == null ? fetchxtream() : initPlatform();
     });
     _firestoreListener.listen();
   }

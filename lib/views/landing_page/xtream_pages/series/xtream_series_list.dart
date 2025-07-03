@@ -511,6 +511,7 @@ class XtreamSeriesListPageState extends State<XtreamSeriesListPage> {
 
                         return GestureDetector(
                           onTap: () async {
+                            print("SERIES DETAILSSS: ${_displayData[i].title}");
                             Navigator.push(
                               context,
                               PageTransition(
@@ -540,7 +541,7 @@ class XtreamSeriesListPageState extends State<XtreamSeriesListPage> {
                                         borderRadius: BorderRadius.circular(5),
                                         child: NetworkImageViewer(
                                           url: _displayData[i].cover,
-                                          title: _displayData[i].title,
+                                          title: _displayData[i].title ?? "",
                                           width: w,
                                           height: h,
                                           fit: BoxFit.cover,
